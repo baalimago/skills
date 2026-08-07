@@ -1,0 +1,68 @@
+#!/bin/bash
+
+set -euo pipefail
+
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+worklog=${1:-}
+am_phases=7
+
+usage() {
+  echo "Usage: worklog-loop <worklog> [am-phases] [-- <runner> [args...]]" >&2
+  echo >&2
+  echo "The runner receives the generated prompt as its final argument." >&2
+  echo "Without a runner, clai is called with the bundled profile." >&2
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ -z "$worklog" ]]; then
+  usage
+  exit 1
+fi
+
+shift
+if [[ "${1:-}" =~ ^[1-9][0-9]*$ ]]; then
+  am_phases=$1
+  shift
+fi
+
+runner=(clai -profile-path "$script_dir/worklog-loop.json" q)
+if [[ "${1:-}" == "--" ]]; then
+  shift
+  if [[ $# -eq 0 ]]; then
+    echo "Error: runner command is missing after --" >&2
+    exit 1
+  fi
+  runner=("$@")
+elif [[ $# -gt 0 ]]; then
+  echo "Error: unexpected argument: $1 (use -- before a runner command)" >&2
+  usage
+  exit 1
+fi
+
+if [[ ! -r "$worklog" ]]; then
+  echo "Error: worklog is not a readable file: $worklog" >&2
+  exit 1
+fi
+
+if [[ ! "$am_phases" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Error: am-phases must be a positive integer: $am_phases" >&2
+  exit 1
+fi
+
+go run github.com/baalimago/repeater@latest -n "$am_phases" -w 1 -output STDOUT "${runner[@]}" "Please implement one phase of this worklog. This work has multiple phases; complete only the next eligible phase during this session.
+
+Runbook:
+1. Read $worklog and select the next incomplete or reopened phase according to its README.
+2. Study the project relevant to the selected worklog phase. Read the applicable architecture documents; the highest-version document for each system is active. The upcoming production fix plan takes precedence because architecture documents describe the target upgrade state.
+3. Implement that one phase, including its required tests and documentation updates.
+4. If all phases are complete, perform a holistic review of the implemented work instead of starting a new phase.
+
+Guidelines:
+* Record material decisions in the decision log, identifying yourself, the date, and worker session for chronology.
+* Follow the strict guidelines in your prompt and in AGENTS.md. Improve code quality rather than merely making changes.
+* Keep the solution maintainable, comprehensive, lean, and clean: no bloat, dead code, or redundancy.
+* Run the relevant tests before and after changes; report the exact commands and results in the worklog."
