@@ -16,11 +16,11 @@ npx skills@latest add baalimago/skills --skill worklog-work
 
 ## Skills
 
-| Skill                                              | Use it for                                                               |
-| -------------------------------------------------- | ------------------------------------------------------------------------ |
-| [`worklog-work`](skills/worklog-work/SKILL.md)     | Plan, execute, and maintain phased implementation worklogs.              |
-| [`worklog-review`](skills/worklog-review/SKILL.md) | Audit implementation phases against their contracts and record findings. |
-| [`worklog-validate`](skills/worklog-validate/SKILL.md) | Check worklog contracts, criteria, error coverage, and test evidence. |
+| Skill                                                  | Use it for                                                               |
+| ------------------------------------------------------ | ------------------------------------------------------------------------ |
+| [`worklog-work`](skills/worklog-work/SKILL.md)         | Plan, execute, and maintain phased implementation worklogs.              |
+| [`worklog-review`](skills/worklog-review/SKILL.md)     | Audit implementation phases against their contracts and record findings. |
+| [`worklog-validate`](skills/worklog-validate/SKILL.md) | Check worklog contracts, criteria, error coverage, and test evidence.    |
 
 ## Worklog system
 
