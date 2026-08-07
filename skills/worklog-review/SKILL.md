@@ -1,7 +1,7 @@
 ---
 name: worklog-review
 description: Review a phased worklog implementation against its contract and critique it in place. Use when reviewing a completed or in-progress phase, auditing an implementation against its spec, or filing review feedback into a worklog. Complements worklog-work, which owns planning, execution, and fixing.
-license: Proprietary
+license: MIT
 metadata:
   version: "1.0"
 ---
@@ -11,7 +11,7 @@ metadata:
 Review the code an executing agent produced against the contract the worklog
 promised, and record the critique **in the worklog itself** — the README and the
 affected phase files — so the next contributor routes off it. This skill is the
-review half of [[worklog-system]]; that skill owns layout, lifecycle, phase-file
+review half of [[worklog-work]]; that skill owns layout, lifecycle, phase-file
 shape, and fixing. Read it first if the structure is unfamiliar.
 
 The review is worthless if it only reads the implementation notes. Notes report

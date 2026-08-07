@@ -1,7 +1,7 @@
 ---
 name: worklog-work
 description: Create, execute and update phased implementation worklogs. Use for multi-phase work planning, and phase execution. For review, see worklog-review.
-license: Proprietary
+license: MIT
 metadata:
   version: "1.1"
 ---
