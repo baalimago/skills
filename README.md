@@ -18,12 +18,13 @@ npx skills@latest add baalimago/skills --skill worklog-work
 
 | Skill                                                  | Use it for                                                               |
 | ------------------------------------------------------ | ------------------------------------------------------------------------ |
-| [`worklog-plan`](skills/worklog-plan/SKILL.md)         | Design and write a phased worklog: README, parameters, phase contracts. |
+| [`worklog-plan`](skills/worklog-plan/SKILL.md)         | Design and write a phased worklog: README, parameters, phase contracts.  |
 | [`worklog-validate`](skills/worklog-validate/SKILL.md) | Check worklog contracts, criteria, error coverage, and test evidence.    |
 | [`worklog-work`](skills/worklog-work/SKILL.md)         | Execute the next eligible phase, or fix reopened findings.               |
 | [`worklog-review`](skills/worklog-review/SKILL.md)     | Audit implementation phases against their contracts and record findings. |
+| [`prompting`](skills/prompting/SKILL.md)               | Author agent prompts to one standard: skeleton, style, template rules.   |
 
-The four are one lifecycle, one verb each: `plan → validate → work → review`.
+The four worklog skills are one lifecycle, one verb each: `plan → validate → work → review`.
 
 ## Worklog system
 
