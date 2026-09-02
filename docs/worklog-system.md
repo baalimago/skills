@@ -15,9 +15,24 @@ worklogs/<date>-<effort>/
 ```
 
 The README is the router. It contains the status board, shared strategy,
-decisions, session history, and review index. Each phase file is an isolated
-contract with a goal, specification, integration scenarios, acceptance
-criteria, error coverage, and implementation notes.
+parameters with owners, decisions, readiness checklist, session history, and
+feedback index. Each phase file is an isolated contract with a goal,
+specification, integration scenarios, acceptance criteria, error coverage,
+and implementation notes.
+
+Four skills cover the lifecycle, one verb each:
+
+| Step     | Skill              | Reads                          | Writes                                  |
+| -------- | ------------------ | ------------------------------ | --------------------------------------- |
+| plan     | `worklog-plan`     | code, architecture, maintainer | README and phase files                  |
+| validate | `worklog-validate` | the whole worklog              | `V{n}-{nn}` findings, verdict           |
+| work     | `worklog-work`     | README plus one phase          | code, implementation notes, status board |
+| review   | `worklog-review`   | README, phases, code           | `R{n}-{nn}` findings in place           |
+
+The author sees everything; the executor deliberately sees the README and one
+phase. Whatever spans phases must therefore be in the README, which is why
+planning is two steps: the maintainer signs off on the README before any
+phase file is written.
 
 ## Phase lifecycle
 
@@ -45,6 +60,29 @@ meaningful failures to their expected result and test.
 Implementation notes record only deltas from the plan: decisions, surprises,
 deviations, and commands that were actually run. Do not use them as a second
 specification.
+
+## Convergence rules
+
+Validation and review rounds converge only when a revision removes the class
+of a finding, not the cited line. Four rules make the worklog self-checking:
+
+- **One source of numbers.** Every default, limit, and threshold lives once
+  in a README parameters table with an `Owner` column; phases refer to rows
+  by name. The only numerals in a phase file are oracle data inside scenario
+  rows.
+- **Invariants and limits are tables.** One row per bound actor or per limit,
+  with the mechanism, the injectable field, and the test. A path that is not
+  a row does not exist; a limit no test can reach is not specified.
+- **Human required.** A phase that needs a person declares the handoff
+  artifact and the exact point where the agent stops.
+- **Readiness checklist.** The README carries one line per defect class with
+  the command or table that checks it. The author runs it before requesting
+  validation; the validator runs it first and holds findings outside it to
+  `note` unless an invariant is broken. `Conditionally ready` is the target
+  verdict.
+
+Validation findings use `V{round}-{nn}` IDs; a later round records each
+prior ID as resolved, open, or regressed before raising new ones.
 
 ## Review
 
