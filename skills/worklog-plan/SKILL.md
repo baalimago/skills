@@ -54,12 +54,10 @@ a gating phase 0 that measures it, not a paragraph that assumes it.
 Write the worklog in two steps and do not start the second without the
 maintainer's explicit approval of the first.
 
-1. **README first.** Write the complete README: goal, status board with
-   phase names and one-line outcomes but every status `Not Started`,
-   strategy, parameters and owners, decisions log, definition of success,
-   readiness checklist. Present it and ask for sign-off. Everything that
-   spans phases is decided here, so a README the maintainer disagrees with
-   would invalidate every phase written from it.
+1. **README first.** Write the complete README in the order below, with
+   every phase status `Not Started`. Present it and ask for sign-off.
+   Everything that spans phases is decided here, so a README the maintainer
+   disagrees with would invalidate every phase written from it.
 2. **Phases second.** Only after the maintainer signs off, write the phase
    files from the approved README. A phase may not introduce a parameter,
    invariant, or decision the README lacks; if writing a phase reveals one,
@@ -71,25 +69,60 @@ signed off again before phases are rewritten.
 
 ## README contents
 
+The README states the finished design, not the argument that produced it. A
+reader should finish it without a second thought about what the system does;
+if a sentence invites one, the sentence is wrong. Keep investigations,
+measurements and rejected alternatives out — they belong in the session
+journal at most, and usually nowhere.
+
 In this order:
 
-1. **Goal** — one paragraph.
-2. **Status board** — one row per phase: number, link, status, one-line
+1. **Goal** — one paragraph. What changes, and what must stay true.
+2. **Glossary** — every term the document leans on, defined once, including
+   the ones a reader could look up elsewhere. Executing agents and reviewers
+   arrive with no context; a term first used in a diagram and defined three
+   sections later has already cost a misreading.
+3. **Flows** — the end-to-end sequences, as diagrams, in the repository's
+   existing diagram style. These come before any schema or contract because
+   they are what a reader needs first: what happens, in what order, between
+   which actors. One diagram per distinct trigger — setup, configuration,
+   execution — rather than one diagram with branches.
+4. **API additions** — every route or public entry point the effort adds:
+   method, path, purpose, request fields, and the status or error for each
+   outcome. Name the full path everywhere it appears; a path given on one
+   call and omitted on the next reads as two different interfaces. Do not
+   invent a path segment whose meaning a reader has to guess.
+5. **Data model additions** — every table, column, key and index the effort
+   adds, and the fate of anything it supersedes. State which field carries
+   mutability and which rows are immutable once written.
+6. **Status board** — one row per phase: number, link, status, one-line
    outcome. Below it the router sentence: complete in order, plus any gate.
-3. **Strategy** — evidence the design rests on; the non-negotiable
-   invariants; the reference evidence (a recording, dataset, fixture)
-   identified by content such as a hash and format, never by a machine
-   path; shared interfaces between phases; the severity taxonomy.
-4. **Parameters and owners** — see below.
-5. **Readiness checklist** — see below.
-6. **Decisions log** — `ID | Date | Decision | Rationale | Replaces`.
-7. **Definition of success** — measurable, with the evidence that proves it.
-8. **Validation policy** — the repository's gates and any explicit
-   exception (a manual paid measurement, a build-tagged acceptance test).
-9. **Feedback index** — one entry per validation or review round mapping
-   each finding ID to the edit or decision that closed it.
-10. **Session journal** — one dated entry per session, cross-phase
-    narration lives only here.
+7. **Scope** — what the effort builds and, explicitly, what it does not.
+   Name anything an executing agent might otherwise create on its own
+   initiative, especially configuration or content a human is meant to
+   author. "No phase creates an X" belongs here and in the checklist.
+8. **Shared interfaces** — the types and signatures phases hand each other.
+   Every type a signature mentions is defined here or in the glossary; a
+   function must be able to reach everything it needs through its arguments.
+9. **Invariants** — see below. Tables, never prose.
+10. **Parameters and owners** — see below.
+11. **Definition of success** — measurable, with the evidence that proves it.
+12. **Validation policy** — the repository's gates and any explicit
+    exception (a manual measurement, a build-tagged acceptance test).
+13. **Readiness checklist** — see below.
+14. **Session journal** — one dated entry per session, cross-phase narration
+    lives only here.
+
+A **decisions log** (`ID | Date | Decision | Rationale | Replaces`) and a
+**feedback index** mapping each review finding to its closing edit are
+optional, and are worth keeping only while the design is still moving. Once
+it is settled they duplicate the body and age badly: fold what they still
+carry into the sections above and delete them. When they are kept, never
+renumber a decision — reference by id from elsewhere in the document, and
+explain any gap left by one that was absorbed.
+
+Ancestor worklogs number their decisions and invariants from one too. Cite
+theirs as *ancestor Dn* and *ancestor In*, never bare, or the ids collide.
 
 ## Phase files
 
@@ -170,15 +203,21 @@ The author runs it before requesting validation and records the outcome in
 the session journal. [[worklog-validate]] runs it first and holds findings
 outside it to `note` unless an invariant is broken. Minimum lines:
 
-1. No numerals in phase files outside oracle rows. Reference command,
-   tuned to the repository's units:
-   `grep -nE '(^|[^=])\b[0-9]+([.,][0-9]+)? ?(s|ms|MB|%)\b' phase-*.md`
+1. No numerals in phase files outside oracle rows, bare integers
+   included. Reference command, tuned to the repository's units:
+   `grep -nE '(^|[^=A-Za-z_])[0-9]+([.,][0-9]+)?( ?(s|ms|MB|%|characters|rows))?\b' phase-*.md`
 2. Every test name is declared in exactly one phase and one file list.
 3. Every config field, flag, and injectable field has one owner.
 4. Every invariant and limit is a table with a test per row.
 5. Every phase mentioning listening, manual, or paid has `Human required`.
-6. No phase references text scheduled for deletion.
-7. New conventions do not contradict existing code conventions (cite the
+6. No phase **depends on** text an earlier phase deletes. The deletion
+   list belongs to the phase that deletes it; this checklist does not
+   restate it.
+7. No phase creates the configuration or content the Scope section reserves
+   for a human, and no test asserts that such a thing exists by name.
+8. Every route, table, column and counter added has exactly one owning
+   phase in the parameters table.
+9. New conventions do not contradict existing code conventions (cite the
    file checked).
 
 ## Handoff
