@@ -10,15 +10,22 @@ Each effort lives in one directory:
 ```text
 worklogs/<date>-<effort>/
 ├── README.md
+├── phase-0-<gate>.md
 ├── phase-1-<name>.md
 └── phase-2-<name>.md
 ```
 
-The README is the router. It contains the status board, shared strategy,
-parameters with owners, decisions, readiness checklist, session history, and
-feedback index. Each phase file is an isolated contract with a goal,
-specification, integration scenarios, acceptance criteria, error coverage,
-and implementation notes.
+Phase 0 is optional: a spike, measurement, or decision that gates the later
+phases. Its decision must be `proceed` before an executor starts a later
+phase.
+
+The README is the router. It contains the goal, glossary, flows, API and
+data-model additions, status board, scope, shared interfaces, invariants,
+parameters with owners, definition of success, validation policy, readiness
+checklist, and session journal. It may also carry a decisions log while the
+design moves, and it carries a feedback index once findings exist. Each phase
+file is an isolated contract with a goal, specification, integration contract,
+acceptance criteria, error coverage, implementation notes, and review findings.
 
 Four skills cover the lifecycle, one verb each:
 
@@ -28,6 +35,8 @@ Four skills cover the lifecycle, one verb each:
 | validate | `worklog-validate` | the whole worklog              | `V{n}-{nn}` findings, verdict           |
 | work     | `worklog-work`     | README plus one phase          | code, implementation notes, status board |
 | review   | `worklog-review`   | README, phases, code           | `R{n}-{nn}` findings in place           |
+
+The fifth skill, `worklog-system`, is the overview.
 
 The author sees everything; the executor deliberately sees the README and one
 phase. Whatever spans phases must therefore be in the README, which is why
@@ -44,10 +53,10 @@ Not Started → In Progress → Complete
                     └─ Reopened ─┘
 ```
 
-An agent selects the first incomplete or reopened phase from the README. It
-implements only that phase, updates its notes and evidence, and then updates
-the README status board. A material review finding reopens the phase until the
-finding is fixed and verified.
+An agent selects the first `Not Started` or `Reopened` phase from the README.
+It implements only that phase, updates its notes and evidence, and then
+updates the README status board and session journal. A `blocker` or `major`
+review finding reopens the phase until the finding is fixed and verified.
 
 ## Contracts and evidence
 
@@ -66,10 +75,9 @@ specification.
 Validation and review rounds converge only when a revision removes the class
 of a finding, not the cited line. Four rules make the worklog self-checking:
 
-- **One source of numbers.** Every default, limit, and threshold lives once
-  in a README parameters table with an `Owner` column; phases refer to rows
-  by name. The only numerals in a phase file are oracle data inside scenario
-  rows.
+- **One source of numbers.** Each default, limit, and threshold appears once,
+  in its owner: the README parameters table when shared, the owning phase
+  when local. A phase refers to a value by name and never copies it.
 - **Invariants and limits are tables.** One row per bound actor or per limit,
   with the mechanism, the injectable field, and the test. A path that is not
   a row does not exist; a limit no test can reach is not specified.
@@ -87,10 +95,12 @@ prior ID as resolved, open, or regressed before raising new ones.
 ## Review
 
 Review reads the code and reruns the gates; it does not trust implementation
-summaries. Findings use stable IDs such as `R1-01`, include severity, a precise
-location, the unmet contract, and a concrete failure scenario. Findings belong
-in the affected phase and in the README feedback index. The verdict must say
-whether the work is ready, independently of whether the tests are green.
+summaries. Findings use stable IDs such as `R1-01` and a severity: `blocker`,
+`major`, `minor`, or `note`. A `blocker` or `major` finding reopens a phase.
+Each finding gives a precise location, the unmet contract, and a concrete
+failure scenario. Findings belong in the affected phase and in the README
+feedback index. The verdict must say whether the work is ready, independently
+of whether the tests are green.
 
 ## Running phases repeatedly
 

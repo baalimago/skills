@@ -9,7 +9,7 @@ to create two plain-text files under `examples/worklog-demo/project/`.
 
 | Phase                          | Status      | Contract                                |
 | ------------------------------ | ----------- | --------------------------------------- |
-| [Phase 1](phase-1-greeting.md) | Completed   | Create the greeting artifact.           |
+| [Phase 1](phase-1-greeting.md) | Complete    | Create the greeting artifact.           |
 | [Phase 2](phase-2-summary.md)  | Not Started | Create and verify the summary artifact. |
 
 ## Strategy

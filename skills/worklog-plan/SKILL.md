@@ -1,9 +1,9 @@
 ---
 name: worklog-plan
-description: Design and write a phased implementation worklog (README plus phase files) for a multi-phase effort. Use when asked to plan, design, draft, or create a worklog or phased implementation plan, or to revise a worklog's strategy after validation. Execution is worklog-work; checking is worklog-validate.
+description: Design and write a phased implementation worklog (README plus phase files) for a multi-phase effort. Use when asked to plan, design, draft, or create a worklog or phased implementation plan, or to revise a worklog's strategy after validation.
 license: MIT
 metadata:
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Worklog plan
@@ -24,13 +24,16 @@ One directory per effort at the repository's established worklog location
 
 ```
 worklogs/<date>-<effort-name>/
-  README.md                — router: status board, strategy, parameters,
-                             decisions, readiness checklist, journal, feedback
+  README.md                — shared contract, system diagrams, status board,
+                             cross-phase interfaces and readiness checklist
   phase-0-<slug>.md        — optional gate (spike, measurement, decision)
   phase-1-<slug>.md        — contract, acceptance criteria, error coverage
   phase-2-<slug>.md
   ...
 ```
+
+A gate phase resolves one question before later phases start. Its decision
+must be `proceed` before an executor selects a later phase.
 
 Prefer the repository's existing convention. Do not rewrite older worklogs
 to match a newer format.
@@ -41,8 +44,9 @@ Do not write phases from a one-line request. Grill the maintainer until the
 design is complete, one question at a time, indexed `Q1`, `Q2`, ... Each
 question offers concrete options and names the option you recommend and
 why. Question premises as well as choices; the goal is the best design, not
-obedience. Stop when a further question would not change a phase. Record
-every answer that shapes the plan as a decisions-log row.
+obedience. Stop when a further question would not change a phase. Write settled
+decisions into the shared contract or owning phase; keep a decisions log only
+while the design is actively changing.
 
 Gather evidence before assuming: read the affected code, the existing
 architecture notes, and any prior measurement. A claim about an external
@@ -54,14 +58,15 @@ a gating phase 0 that measures it, not a paragraph that assumes it.
 Write the worklog in two steps and do not start the second without the
 maintainer's explicit approval of the first.
 
-1. **README first.** Write the complete README in the order below, with
-   every phase status `Not Started`. Present it and ask for sign-off.
-   Everything that spans phases is decided here, so a README the maintainer
-   disagrees with would invalidate every phase written from it.
+1. **README first.** Write the shared README described below, with every
+   phase status `Not Started`. Present it and ask for sign-off. The README
+   establishes the whole-system context and rules shared by phases; it is not
+   a repository for every phase's implementation detail.
 2. **Phases second.** Only after the maintainer signs off, write the phase
-   files from the approved README. A phase may not introduce a parameter,
-   invariant, or decision the README lacks; if writing a phase reveals one,
-   stop, propose the README change, and get it approved before continuing.
+   files. Each phase owns its detailed behavior, flows, API/schema details,
+   parameters, limits, errors and tests. If a phase reveals a new rule that
+   affects several phases, stop and propose that shared contract for the
+   README before proceeding. Do not move phase-local details into the README.
 
 Record the sign-off as a session-journal entry with the date. A README
 revised after sign-off (a validation `redesign`, a strategy change) is
@@ -113,16 +118,18 @@ In this order:
 14. **Session journal** — one dated entry per session, cross-phase narration
     lives only here.
 
-A **decisions log** (`ID | Date | Decision | Rationale | Replaces`) and a
-**feedback index** mapping each review finding to its closing edit are
-optional, and are worth keeping only while the design is still moving. Once
-it is settled they duplicate the body and age badly: fold what they still
-carry into the sections above and delete them. When they are kept, never
-renumber a decision — reference by id from elsewhere in the document, and
-explain any gap left by one that was absorbed.
+A **decisions log** (`ID | Date | Decision | Rationale | Replaces`) is
+optional and worth keeping only while the design is still moving. Once the
+design is settled it duplicates the body and ages badly: fold what it still
+carries into the sections above and delete it. Never renumber a decision —
+reference it by id from elsewhere in the document, and explain any gap left
+by one that was absorbed.
+
+A **feedback index** maps each validation or review finding to its closing
+edit. Create it with the first finding and keep it while any finding is open.
 
 Ancestor worklogs number their decisions and invariants from one too. Cite
-theirs as *ancestor Dn* and *ancestor In*, never bare, or the ids collide.
+theirs as _ancestor Dn_ and _ancestor In_, never bare, or the ids collide.
 
 ## Phase files
 
@@ -130,8 +137,9 @@ Each phase file contains, in order:
 
 1. Title, `**Status:**`, link to the README.
 2. **Goal** — one sentence.
-3. **Specification** — concrete behavior, paths, interfaces, constraints;
-   invariant and limit tables; a `Human required` subsection when needed.
+3. **Specification** — phase-owned behavior, flows, paths, API/schema details,
+   parameters, constraints, invariant and limit tables; a `Human required`
+   subsection when needed.
 4. **Integration contract** — scenario table: trigger, collaborators or
    fakes, observable result, required side effects, prohibited side
    effects. State `unit-test-only` when there is none.
@@ -142,33 +150,35 @@ Each phase file contains, in order:
 7. **Implementation notes** — `Not started.` The executor writes here.
 8. **Review findings** — `None.` Reviewers append here.
 
-An executing agent reads the README and only its phase. Anything a phase
-needs from another phase is promoted to the README, never cross-referenced.
+An executing agent reads the README and its phase. The phase must contain
+what it needs to implement its work; it must not depend on another phase's local
+details. Promote only genuinely shared interfaces and rules to the README.
 
 ## Single source of numbers and owners
 
-Every default, limit, threshold, and tunable lives once, in the README
-parameters table: `Parameter | Default | Owner`. Phase files refer to rows
-by name and never restate a value. The only numerals allowed in a phase
-file are oracle data inside an integration-contract row. The Owner column
-also names, for every config field, flag, and injectable field, the single
-phase that introduces it.
-
-Numbers stated twice drift; a validator that finds one value in two places
-has found a defect.
+Every phase-owned default, limit, threshold and tunable lives once in its
+owning phase, with a clear name, value and test. The README lists a parameter
+only when several phases share it; identify its owner there and have phases
+refer to it rather than copy its value. Do not move phase-local evidence or
+limits into the README merely because another phase may be interested. The
+owning phase also identifies who introduces each config field, flag and
+injectable field. Shared interface values belong in the README only when
+multiple phases must use them.
 
 ## Invariants and limits are tables
 
 An invariant that binds several actors ("every mutation holds the lock",
 "every request counts", "every artifact is removed") is a table in the
-owning phase: one row per bound actor, the mechanism, the test. A path that
-is not a row does not exist; an executor that needs a new path adds a row
-first. Prose invariants are how one branch silently escapes.
+owning phase: one row per bound actor, the mechanism, the test. Put a
+cross-phase invariant in the README only when it constrains multiple phases;
+include its proof or point to the owning phase tests. A path that is not a
+row does not exist; an executor that needs a new path adds a row first.
 
-Limits and budgets follow the same rule: one row per limit naming the
-injectable field, the README parameter, and how the test triggers it. A
-limit that no test can reach with an injected value is untestable and must
-not be specified.
+Limits and budgets follow the same rule: one row per phase-owned limit naming
+the injectable field, its phase-local parameter, and how the test triggers
+it. If several phases share a limit, define it once in the README and name
+its owner. A limit that no test can reach with an injected value is
+untestable and must not be specified.
 
 ## Human-required steps
 
@@ -203,21 +213,18 @@ The author runs it before requesting validation and records the outcome in
 the session journal. [[worklog-validate]] runs it first and holds findings
 outside it to `note` unless an invariant is broken. Minimum lines:
 
-1. No numerals in phase files outside oracle rows, bare integers
-   included. Reference command, tuned to the repository's units:
-   `grep -nE '(^|[^=A-Za-z_])[0-9]+([.,][0-9]+)?( ?(s|ms|MB|%|characters|rows))?\b' phase-*.md`
-2. Every test name is declared in exactly one phase and one file list.
-3. Every config field, flag, and injectable field has one owner.
-4. Every invariant and limit is a table with a test per row.
-5. Every phase mentioning listening, manual, or paid has `Human required`.
-6. No phase **depends on** text an earlier phase deletes. The deletion
-   list belongs to the phase that deletes it; this checklist does not
-   restate it.
-7. No phase creates the configuration or content the Scope section reserves
-   for a human, and no test asserts that such a thing exists by name.
-8. Every route, table, column and counter added has exactly one owning
-   phase in the parameters table.
-9. New conventions do not contradict existing code conventions (cite the
+1. Shared diagrams explain the overall system; phase-local sequences and
+   measurements appear only in their owning phase.
+2. Every test has one owning phase and file list; cross-phase references name
+   the owner rather than redeclaring the test.
+3. Every phase-local parameter, config field, flag, injectable field, invariant
+   and limit has one owner and a test; shared values appear once in the README.
+4. Every phase mentioning listening, manual, paid, credentials or a
+   machine-local artifact has `Human required`.
+5. No phase depends on local detail from another phase or on text scheduled
+   for deletion.
+6. No phase creates human-owned configuration or content reserved by Scope.
+7. New conventions do not contradict existing code conventions (cite the
    file checked).
 
 ## Handoff

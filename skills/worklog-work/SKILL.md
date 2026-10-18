@@ -1,14 +1,14 @@
 ---
 name: worklog-work
-description: Execute the next eligible phase of an existing phased worklog, or fix reopened findings in one. Use when asked to implement, continue, pick up, or fix a worklog phase. Designing a worklog is worklog-plan; checking it is worklog-validate; auditing the result is worklog-review.
+description: Execute the next eligible phase of an existing phased worklog, or fix reopened findings in one. Use when asked to implement, continue, pick up, or fix a worklog phase.
 license: MIT
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Worklog work
 
-This skill is the executor's half of the worklog system. [[worklog-plan]]
+This skill is the executor's half of the [[worklog-system]]. [[worklog-plan]]
 owns the layout, the README contents, and the phase-file shape; read it only
 when the structure is unfamiliar. This skill owns selecting a phase, doing
 exactly that phase, recording evidence, and fixing findings.
@@ -16,17 +16,18 @@ exactly that phase, recording evidence, and fixing findings.
 ## Reading contract
 
 **Read the README and only the phase file you are working on.** Shared
-invariants, parameters, ordering, and decisions live in the README's
-Strategy and Parameters sections. If your phase needs something from another
-phase, that is a planning defect: record it in the session journal and
-promote the detail to the README rather than reading around it.
+invariants, interfaces, parameters, and ordering live in the README's
+`Invariants`, `Shared interfaces`, and `Parameters and owners` sections. If
+your phase needs something from another phase, that is a planning defect:
+record it in the session journal and promote the detail to the README rather
+than reading around it.
 
 A reviewer reads the README, the phase files under review, and the code.
 
 ## Router and lifecycle
 
 Phase statuses are `Not Started` → `In Progress` → `Complete`. A review that
-finds a material unmet contract sets `Reopened (review N)`.
+finds a `blocker` or `major` unmet contract sets `Reopened (review N)`.
 
 Select the first `Not Started` or `Reopened` phase on the README status board
 unless the README records a different order or a gate (a phase 0 whose
@@ -70,8 +71,8 @@ Work one reopened phase at a time. Implement the fix, check its finding,
 record an implementation-notes delta, and return the phase to `Complete`
 only when every finding that reopened it is resolved and verified. Update
 the README status board and feedback index in the same session. When a
-finding exposes a cross-phase rule, promote the rule to the README Strategy
-section rather than fixing it locally.
+finding exposes a cross-phase rule, promote the rule to the README
+`Invariants` section rather than fixing it locally.
 
 ## Project maintenance and quality gates
 

@@ -3,7 +3,7 @@ name: worklog-review
 description: Review a phased worklog implementation against its contract and critique it in place. Use when reviewing a completed or in-progress phase, auditing an implementation against its spec, or filing review feedback into a worklog. Complements worklog-plan (design), worklog-validate (checking), and worklog-work (execution and fixing).
 license: MIT
 metadata:
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Worklog review
@@ -55,9 +55,9 @@ are where it leaks and start there.
 
 - Stable ID per finding: `R{round}-{nn}` (e.g. `R1-07`). IDs never get reused or
   renumbered across rounds.
-- Severity from the repository's taxonomy (define one in the README if absent).
-  State which severities reopen a phase — normally everything but a minor,
-  non-blocking note.
+- Severity: `blocker`, `major`, `minor`, or `note`, the vocabulary
+  [[worklog-validate]] defines. A `blocker` or `major` finding reopens the
+  phase; `minor` and `note` do not, unless the maintainer says otherwise.
 - Precise reference: `file:line`, and the exact contract clause or acceptance
   criterion left unmet.
 - Phrase as actionable work with a checkbox, so the fixer can close it directly.
@@ -69,23 +69,25 @@ are where it leaks and start there.
 Never write a standalone review document — a second source of truth the next
 agent will not read. Everything lands in the worklog, in the same change:
 
-1. **Affected phase file** — append `## Review findings (review N, date)` with
-   the findings that concern that phase, plus what you verified good. If the
-   phase was specced with a task it did not fully meet, say so there: the phase's
-   own Goal/AC missed the branch.
+1. **Affected phase file** — replace `None.` in the `Review findings` section,
+   or append a `### Review N (date)` subsection, with the findings that
+   concern that phase and what you verified good. If the phase was specced
+   with a task it did not fully meet, say so there: the phase's own Goal/AC
+   missed the branch.
 2. **README status board** — reflect the true status of each reviewed phase. A
-   phase whose contract is unmet is no longer done; annotate the row (or set
-   `Reopened (review N)`) and point to where the fix is tracked. A stale
-   completion status is how defects survive.
-3. **README feedback index** — one row per finding: ID, severity, phase link,
-   one-line summary. This is the review's table of contents.
-4. **README decisions log** — a `Review N` entry: the commands you re-ran and
-   their results, the overall verdict, and cross-cutting observations that are
-   not themselves single findings.
+   phase with an open `blocker` or `major` finding is no longer done; annotate
+   the row (or set `Reopened (review N)`) and point to where the fix is
+   tracked. A stale completion status is how defects survive.
+3. **README feedback index** — create the section when it is absent, then add
+   one row per finding: ID, severity, phase link, one-line summary. This is
+   the review's table of contents.
+4. **README session journal** — a `Review N` entry: the commands you re-ran
+   and their results, the overall verdict, and cross-cutting observations that
+   are not themselves single findings.
 5. **Elevate new cross-phase invariants.** When the review discovers a rule that
    spans phases (often the root cause behind several findings), promote it into
-   the README Strategy section so future phases inherit it — do not leave it
-   buried in one phase's findings.
+   the README `Invariants` section so future phases inherit it — do not leave
+   it buried in one phase's findings.
 
 ## Verdict
 

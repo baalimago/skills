@@ -1,6 +1,6 @@
 # Phase 1 — greeting
 
-**Status:** Completed
+**Status:** Complete
 
 [Back to the worklog](README.md)
 

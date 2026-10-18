@@ -3,7 +3,7 @@ name: worklog-validate
 description: Validate a worklog and its phases for complete contracts, acceptance criteria, error coverage, and test evidence before implementation or review.
 license: MIT
 metadata:
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Worklog validate
@@ -24,8 +24,10 @@ user asks for that separately; that is [[worklog-work]].
    - Acceptance criteria
    - Error coverage
    - Implementation notes
-4. Confirm that the README contains a truthful status board, shared strategy,
-   decisions log, session journal, and feedback index.
+   - Review findings
+4. Confirm that the README contains a truthful status board, the shared
+   contract sections [[worklog-plan]] lists, and a session journal. Verify a
+   decisions log or feedback index when the README keeps one.
 5. Check that acceptance criteria are observable and independently checkable.
    Each criterion must name a test or repeatable verification command.
 6. Check that error coverage names meaningful failures, expected outcomes, and
@@ -36,10 +38,10 @@ user asks for that separately; that is [[worklog-work]].
    commands. Report broken references.
 8a. Run the README `Readiness checklist` first, including its commands.
    A missing checklist is a major finding. Then verify the structural
-   rules from [[worklog-plan]]: no numerals in phase files outside oracle
-   rows; one owner per config field, flag, and injectable field; every
-   invariant and limit as a table with a test per row; `Human required`
-   wherever a person is needed.
+   rules from [[worklog-plan]]: each parameter, limit, and threshold appears
+   once in its owning table; one owner per config field, flag, and injectable
+   field; every invariant and limit as a table with a test per row; `Human
+   required` wherever a person is needed.
 8b. When the feedback index lists a prior validation round, verify each
    prior ID against the edit or decision it cites and report it as
    resolved, open, or regressed before raising new findings. Findings
@@ -55,7 +57,7 @@ Report findings in priority order. For every finding include:
 
 - A stable ID: `V{round}-{nn}`, e.g. `V1-01`. Rounds are numbered; IDs
   are never reused or renumbered.
-- Severity: blocker, major, minor, or note.
+- Severity: `blocker`, `major`, `minor`, or `note`.
 - The exact file and line or section.
 - The unmet contract.
 - A concrete failure scenario.
