@@ -1,42 +1,152 @@
 ---
 name: worklog-plan
-description: Design and write a phased implementation worklog (README plus phase files) for a multi-phase effort. Use when asked to plan, design, draft, or create a worklog or phased implementation plan, or to revise a worklog's strategy after validation.
+description: Design and write a phased implementation worklog, a README that holds the design and phase files that each implement one interface. Use when asked to plan, design, draft, or create a worklog or phased implementation plan, to revise one after validation, or to reset a design andon. Execution is worklog-work; checking is worklog-validate.
 license: MIT
 metadata:
-  version: "1.2"
+  version: "2.0"
 ---
 
 # Worklog plan
 
 This skill is the author's half of the worklog system. It produces the README
-and phase files that [[worklog-validate]] checks, [[worklog-work]] executes
-one phase at a time, and [[worklog-review]] audits. The author sees the whole
-picture; the executor deliberately does not. Everything an executor must know
-that spans phases therefore has to be written down here, in the README.
+and phase files that [[worklog-validate]] checks, [[worklog-work]] executes,
+[[worklog-review]] audits, and [[worklog-fix]] repairs. It also defines the
+terms, statuses, and records every other worklog skill uses.
+
+A worklog states **what** the system will do, never how. The what is an
+interface: a contract that can be met without naming an implementation. The
+maintainer signs off the what; agents own the how and the proof. Stating what
+is far shorter than proving it, so a worklog that specifies how has already
+gone wrong.
 
 Use a worklog for a substantial effort that spans phases, sessions, or
 contributors. Keep one-off notes and investigations separate.
 
-## Directory layout
+## The model
 
-One directory per effort at the repository's established worklog location
-(or `worklogs/` when none exists):
+A worklog is a **package**. Each phase is a **module** that implements one
+interface and owns that branch of the system.
+
+- **Ownership is a tree.** The README is the root. A phase sits under the root
+  or under a sub-package. A sub-package is a README section with no phase
+  file; it holds what binds two or more of its children.
+- **Dependencies are a DAG over the tree.** A phase consumes members declared
+  by lower-numbered phases, or by imported packages: other worklogs and
+  existing code, cited by their interface. There are no cycles.
+- **The rule repeats when you zoom out.** A worklog exports an interface and
+  imports others, the same way a phase does. Cite another worklog's ids with
+  its name, `policy-engine:I3`, never bare.
+
+Every invariant and parameter lives at the **lowest node that contains
+everything it binds**: a phase file, a sub-package section, or the README root.
+
+## Files
 
 ```
-worklogs/<date>-<effort-name>/
-  README.md                — shared contract, system diagrams, status board,
-                             cross-phase interfaces and readiness checklist
-  phase-0-<slug>.md        — optional gate (spike, measurement, decision)
-  phase-1-<slug>.md        — contract, acceptance criteria, error coverage
+worklogs/<date>-<effort>/
+  README.md             from templates/worklog-README.md
+  phase-1-<slug>.md     from templates/phase.md
   phase-2-<slug>.md
-  ...
+  phase-2.1-<slug>.md   injected after phase 2
 ```
 
-A gate phase resolves one question before later phases start. Its decision
-must be `proceed` before an executor selects a later phase.
+Use the repository's established worklog location, or `worklogs/` when none
+exists. Start every file from the templates next to this skill. An empty
+section says `None.` and is never removed. Do not rewrite older worklogs to
+match a newer format.
 
-Prefer the repository's existing convention. Do not rewrite older worklogs
-to match a newer format.
+## Interfaces
+
+Prefer an interface over a struct or a function. A struct or a function is a
+tool for reaching the goal and couples the design to one solution; an
+interface states only the contract.
+
+Follow Go's idioms in every language. Name an interface as a verb or as Go's
+`-er` agent noun: a `Stringer` produces `String()`. Name a non-code interface
+by the verb of its main action, such as `provision` or `serve`. Keep it small;
+the bigger the interface, the weaker the abstraction. A phase implements
+exactly one interface. When it needs several verbs, declare one interface
+that embeds them, as Go's `ReadWriter` embeds `Reader` and `Writer`. Declare
+the data types an interface passes next to it.
+
+What counts as an interface is defined here and nowhere else:
+
+| Kind                                           | Written as                                                                                  | Tests go through                                 |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Code                                           | the language's construct: Go interface, Python `Protocol`, Rust trait, TypeScript interface | every implementation, fakes included             |
+| HTTP API                                       | a route table: method, path, request fields, status per outcome                            | HTTP requests                                    |
+| Tool or RPC schema                             | the schema                                                                                  | calls through the schema                         |
+| CLI                                            | a usage synopsis: commands, flags, defaults, exit codes, output streams                    | running the command                              |
+| Data contract (provisional)                    | DDL for tables that other code reads                                                        | queries                                          |
+| Infra module (provisional)                     | variables and outputs, a values schema, environment variables                               | plan or template output                          |
+| Build target, pipeline, or image (provisional) | inputs (arguments, environment), outputs, and the result per outcome                        | running the target or container, or the workflow |
+| UI (provisional)                               | the route table plus `Element or state \| Shown when`                                       | HTTP requests and DOM assertions                 |
+
+Provisional kinds are on trial. The maintainer adds, removes, or confirms a
+kind by editing this table.
+
+- **Data contracts.** The frozen surface is the columns and constraints a
+  consumer names; other columns are body. A migration whose downgrade discards
+  data needs a `Human required` section.
+- **Generated interfaces.** When a generator produces the interface, the
+  interface is the generator's source file, and the output is body. The
+  Validation policy lists each generator and the gate that proves it is
+  idempotent.
+
+### Clauses
+
+Each interface member carries its contract as comments around it, in the
+language's own documentation form. A clause states one observable behaviour:
+what the member returns, each error it raises, each invariant it upholds,
+cited by id. A clause may name a member it consumes and the path or name it
+is located by. It names no test, no source file of its own implementation,
+and no step a caller cannot observe; the executor derives and names the
+tests. The path an interface is written to is part of the interface, and a
+consumer may rely on it. Clauses are numbered in order within each member,
+and `{member}.{n}` names one, such as `evaluate.2`.
+
+```python
+class PolicyEvaluator(Protocol):
+    def evaluate(self, policies: PolicySnapshot, tags: AbstractSet[int],
+                 facts: PolicyFacts) -> PolicyOutcome:
+        """What the policy set asks for, given an app's tags and facts.
+
+        - A policy matches when ALL conditions match; a condition when ANY term does.
+        - Policies asking for the same action yield one key with every revision id. (I1)
+        - A fact missing from `facts` raises.
+        """
+```
+
+## Phase classes
+
+Every phase belongs to exactly one class.
+
+| Class       | Place in the tree                                                                     | Specified by                       | Proven by                                                               |
+| ----------- | ------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------- |
+| Contract    | a leaf                                                                                | its interface and clauses          | contract tests through the interface, run against every implementation |
+| Composition | a child of the node whose interface it implements, wiring that node's other children | that node's interface and clauses  | scenarios with the real children wired in, and its golden diff         |
+| Prune       | a leaf, after the composition that made its code dead                                | its Removes table                  | no golden changes, no removed name left outside its allowed hits       |
+
+- **One composition per node.** A root or sub-package has at most one
+  composition phase, and the root's implements the worklog's exported
+  interface. A contract phase never wires a sibling; wiring is the composition
+  under their shared parent.
+- **Composition changes behaviour; prune must not.** Never mix the two in one
+  phase.
+- **Goldens.** A golden is a committed snapshot of observable output. A
+  composition's golden diff is `Golden | Change`, one assertion per golden it
+  changes, and no other golden may change. A prune changes no golden. A phase
+  that needs a golden that does not exist creates it from the code as it
+  stands, before making its own change; a row marked `new` is written after
+  the change. The Validation policy names the command that regenerates the
+  goldens.
+- **Failure clauses of a composition** may be exercised with a stub child that
+  breaks the child's contract only in the way the clause names.
+- **Test scope follows the tree.** A leaf is tested alone through its
+  interface, a composition with its real children, the root end to end.
+
+There is no quality-gate phase. Every phase runs the full gates before and
+after its work, and the review of the root is the final sweep.
 
 ## Design before writing
 
@@ -44,195 +154,203 @@ Do not write phases from a one-line request. Grill the maintainer until the
 design is complete, one question at a time, indexed `Q1`, `Q2`, ... Each
 question offers concrete options and names the option you recommend and
 why. Question premises as well as choices; the goal is the best design, not
-obedience. Stop when a further question would not change a phase. Write settled
-decisions into the shared contract or owning phase; keep a decisions log only
-while the design is actively changing.
+obedience. Ask where the interfaces are, not only what to build. Stop when a
+further question would not change an interface.
 
-Gather evidence before assuming: read the affected code, the existing
-architecture notes, and any prior measurement. A claim about an external
-system (provider limits, library behavior) that nobody has verified becomes
-a gating phase 0 that measures it, not a paragraph that assumes it.
+Gather evidence before assuming: read the affected code, the architecture
+notes, and any prior measurement. Measure a claim about an external system
+that nobody has verified during planning. A measurement is never a phase:
+record it as a dated note at the repository's notes location and cite it in
+the fact it decides.
 
-## Two steps, one sign-off between them
+## Three steps, two sign-offs
 
-Write the worklog in two steps and do not start the second without the
-maintainer's explicit approval of the first.
+1. **README.** Write the README with every phase `Not Started`. The maintainer
+   signs it off, which fixes the tree: nodes, parents, classes, numbers, and
+   Scope.
+2. **Phase files.** Write each phase from the approved README. Root facts,
+   sub-package facts, Flows, and Imports stay in flux until the interface
+   sign-off; record each edit as a journal line. A phase may not add a node
+   or move a member between nodes; if writing one reveals the need, stop and
+   get the README signed again first.
+3. **Interface sign-off.** Run [[worklog-validate]] until the verdict is
+   `Ready`. Then extract every phase's Interface section, and every README
+   edit made since the README sign-off, into one view and have the maintainer
+   sign off the set. From then on the facts and flows are frozen with the
+   interfaces.
 
-1. **README first.** Write the shared README described below, with every
-   phase status `Not Started`. Present it and ask for sign-off. The README
-   establishes the whole-system context and rules shared by phases; it is not
-   a repository for every phase's implementation detail.
-2. **Phases second.** Only after the maintainer signs off, write the phase
-   files. Each phase owns its detailed behavior, flows, API/schema details,
-   parameters, limits, errors and tests. If a phase reveals a new rule that
-   affects several phases, stop and propose that shared contract for the
-   README before proceeding. Do not move phase-local details into the README.
+A sign-off line is written only on the maintainer's explicit instruction in
+that session, never on an agent's own judgement:
+`date · maintainer · README signed`, `date · maintainer · interfaces 1–4 signed`.
+An interface sign-off covers the phases it names, but only when it is written
+after each one's latest `date · plan · phase N re-planned` line.
+[[worklog-work]] executes only covered phases. Signed-off interfaces and their
+clauses are frozen.
 
-Record the sign-off as a session-journal entry with the date. A README
-revised after sign-off (a validation `redesign`, a strategy change) is
-signed off again before phases are rewritten.
+## Records
 
-## README contents
+Every worklog skill, and the maintainer, reads and writes these records as
+defined here.
 
-The README states the finished design, not the argument that produced it. A
-reader should finish it without a second thought about what the system does;
-if a sentence invites one, the sentence is wrong. Keep investigations,
-measurements and rejected alternatives out — they belong in the session
-journal at most, and usually nowhere.
+- **Phase status** lives only on the README status board: `Not Started`,
+  `In Progress`, `Complete`, or `Reopened (review N)`.
+- **Line** is the marker above the board: `running`; `stopped by A01, A03`
+  while any andon finding is open; `waiting on human: phase N` or
+  `waiting on human: root`; or `done` after a clean root review. No skill acts
+  on a `done` line.
+- **Findings** are rows of `ID | Severity | Node | Owner | Status | Summary`.
+  - IDs are `V{round}-{nn}` from validation, `R{round}-{nn}` from review, and
+    `A{nn}` for andons. A new ID is the highest of its kind plus one; IDs are
+    never reused.
+  - Severity is `blocker`, `major`, or `minor`, or `quality andon` or
+    `design andon`. Notes never get a row.
+  - Node is a phase number, a sub-package name, or `root`. An andon's node is
+    the phase that raised it, or `root` when no phase was selected. An andon's
+    summary is `<cause> · <gate> · <failing tests> · <commit>`.
+  - Owner is `fix`, `plan`, or `maintainer`.
+  - Status is `Open`, `Closed <commit>`, or `Regressed`. `Regressed` counts as
+    open everywhere: it is fixed, it counts in verdicts, and it reopens its
+    phase like a new finding of its severity.
+- **Closing a finding**, by whoever owns it: set `Closed <commit>`, with `+wip`
+  when the change is uncommitted; remove an andon's ID from `Line`, and set
+  `running` when none remains; add a journal line.
+- **Session journal** is one line per skill run or maintainer action, in one
+  of these shapes:
+  - `date · maintainer · README signed` or `interfaces 1–4 signed`
+  - `date · validate · V{round} <verdict> · <command>: <result> · notes: <count>`
+  - `date · work · phase N Complete`, `phase N · A{nn}`, or `phase N waiting on human`
+  - `date · fix · <ids> closed · <commands>: <results>`
+  - `date · review · <node> round N <verdict> · <commands>: <results>`, or
+    `date · review · done · <commands>: <results>`
+  - `date · plan · phase N re-planned`, or `README amended: <section>`
+  - `date · maintainer · A{nn} closed · <patch|minor|major|re-plan> · missed by check N`,
+    `phase N handoff done`, or `human check <node> · <result>`
+- **One agent works on a worklog at a time.**
 
-In this order:
+## README rules
 
-1. **Goal** — one paragraph. What changes, and what must stay true.
-2. **Glossary** — every term the document leans on, defined once, including
-   the ones a reader could look up elsewhere. Executing agents and reviewers
-   arrive with no context; a term first used in a diagram and defined three
-   sections later has already cost a misreading.
-3. **Flows** — the end-to-end sequences, as diagrams, in the repository's
-   existing diagram style. These come before any schema or contract because
-   they are what a reader needs first: what happens, in what order, between
-   which actors. One diagram per distinct trigger — setup, configuration,
-   execution — rather than one diagram with branches.
-4. **API additions** — every route or public entry point the effort adds:
-   method, path, purpose, request fields, and the status or error for each
-   outcome. Name the full path everywhere it appears; a path given on one
-   call and omitted on the next reads as two different interfaces. Do not
-   invent a path segment whose meaning a reader has to guess.
-5. **Data model additions** — every table, column, key and index the effort
-   adds, and the fate of anything it supersedes. State which field carries
-   mutability and which rows are immutable once written.
-6. **Status board** — one row per phase: number, link, status, one-line
-   outcome. Below it the router sentence: complete in order, plus any gate.
-7. **Scope** — what the effort builds and, explicitly, what it does not.
-   Name anything an executing agent might otherwise create on its own
-   initiative, especially configuration or content a human is meant to
-   author. "No phase creates an X" belongs here and in the checklist.
-8. **Shared interfaces** — the types and signatures phases hand each other.
-   Every type a signature mentions is defined here or in the glossary; a
-   function must be able to reach everything it needs through its arguments.
-9. **Invariants** — see below. Tables, never prose.
-10. **Parameters and owners** — see below.
-11. **Definition of success** — measurable, with the evidence that proves it.
-12. **Validation policy** — the repository's gates and any explicit
-    exception (a manual measurement, a build-tagged acceptance test).
-13. **Readiness checklist** — see below.
-14. **Session journal** — one dated entry per session, cross-phase narration
-    lives only here.
+The README states the finished design, not the argument that produced it.
+Keep investigations, measurements and rejected alternatives out.
 
-A **decisions log** (`ID | Date | Decision | Rationale | Replaces`) is
-optional and worth keeping only while the design is still moving. Once the
-design is settled it duplicates the body and ages badly: fold what it still
-carries into the sections above and delete it. Never renumber a decision —
-reference it by id from elsewhere in the document, and explain any gap left
-by one that was absorbed.
+- **Flows** are diagrams, one per trigger. Participants may include external
+  actors. Every call arrow targets a declared member or an import; every
+  reply arrow returns from a call drawn in the same flow.
+- **Imports** list one line per member: `package:member · kind · used by
+  phases`. Cite a package that has no worklog by repository and tag. A fake of
+  an imported system that cannot run in the gates is a recorded fixture; name
+  its source here.
+- **Facts** live in Root facts, Local facts, and sub-package sections. An
+  invariant is a statement and the members it binds; its proof lives in the
+  clauses that cite its id. A parameter is `Parameter | Default | Decided by`,
+  where Decided by is the maintainer or a cited source, such as a ticket or a
+  measurement note.
+- **Scope** names what the effort does not build, especially anything a human
+  must author. No phase creates it, and no test asserts that it exists.
+- **Validation policy** has two lists. **Gates** are commands an agent runs
+  hermetically: all of them once at the start of every phase, and twice at
+  its end, in random order where the runner allows. **Human checks** need
+  credentials, money, or live cloud state; each names its exact command and
+  the node it certifies. They are never gates. Once every phase is
+  `Complete`, the maintainer runs each and records the result in the journal.
 
-A **feedback index** maps each validation or review finding to its closing
-edit. Create it with the first finding and keep it while any finding is open.
+## Phase file rules
 
-Ancestor worklogs number their decisions and invariants from one too. Cite
-theirs as _ancestor Dn_ and _ancestor In_, never bare, or the ids collide.
-
-## Phase files
-
-Each phase file contains, in order:
-
-1. Title, `**Status:**`, link to the README.
-2. **Goal** — one sentence.
-3. **Specification** — phase-owned behavior, flows, paths, API/schema details,
-   parameters, constraints, invariant and limit tables; a `Human required`
-   subsection when needed.
-4. **Integration contract** — scenario table: trigger, collaborators or
-   fakes, observable result, required side effects, prohibited side
-   effects. State `unit-test-only` when there is none.
-5. **Acceptance criteria** — table of observable outcomes, each naming the
-   test or repeatable command that proves it.
-6. **Error coverage** — table from meaningful failure to expected outcome
-   and the test for each row.
-7. **Implementation notes** — `Not started.` The executor writes here.
-8. **Review findings** — `None.` Reviewers append here.
-
-An executing agent reads the README and its phase. The phase must contain
-what it needs to implement its work; it must not depend on another phase's local
-details. Promote only genuinely shared interfaces and rules to the README.
-
-## Single source of numbers and owners
-
-Every phase-owned default, limit, threshold and tunable lives once in its
-owning phase, with a clear name, value and test. The README lists a parameter
-only when several phases share it; identify its owner there and have phases
-refer to it rather than copy its value. Do not move phase-local evidence or
-limits into the README merely because another phase may be interested. The
-owning phase also identifies who introduces each config field, flag and
-injectable field. Shared interface values belong in the README only when
-multiple phases must use them.
-
-## Invariants and limits are tables
-
-An invariant that binds several actors ("every mutation holds the lock",
-"every request counts", "every artifact is removed") is a table in the
-owning phase: one row per bound actor, the mechanism, the test. Put a
-cross-phase invariant in the README only when it constrains multiple phases;
-include its proof or point to the owning phase tests. A path that is not a
-row does not exist; an executor that needs a new path adds a row first.
-
-Limits and budgets follow the same rule: one row per phase-owned limit naming
-the injectable field, its phase-local parameter, and how the test triggers
-it. If several phases share a limit, define it once in the README and name
-its owner. A limit that no test can reach with an injected value is
-untestable and must not be specified.
+- **Interface**: written verbatim to the named path. A composition declares
+  the interface of the node it implements.
+- **Consumes**: one line per member, `member (phase N)` or
+  `package:member (import)`. The language runtime, the shell, and standard
+  tools are not members. Anything a phase needs from elsewhere arrives
+  through a consumed member.
+- **Removes** (prune): `Member | Consumers | Re-pointed to | Allowed hits`. No
+  hit outside its row is allowed.
+- **Local facts**: invariants and parameters that bind only this phase.
 
 ## Human-required steps
 
-A phase that needs a person (listening, a paid run, credentials, a
-judgment call, a machine-local asset) declares a `Human required`
-subsection under Specification: the artifact the person produces, the
-exact point where the agent stops, and what the agent does before and
-after. Any phase whose text mentions listening, manual, or paid without
-this subsection is incomplete.
+A phase that needs a person (a credential, a paid run, listening, a judgement
+call, a machine-local asset) has a `Human required` section: the artifact
+the person produces, the exact point where the agent stops, and what the
+agent does before and after.
 
-## Verification doctrine
+At the handoff the agent writes its journal line and sets
+`**Line:** waiting on human: phase N`. When the artifact exists, the
+maintainer writes the handoff-done line and sets the line `running`, and the
+phase resumes.
 
-Prove user- or system-visible behavior at the narrowest level that exercises
-the real boundary: integration, end-to-end, or contract tests. Prove internal
-error handling at the unit boundary. Never replace a specified cross-component
-scenario with unit tests on both sides of a mocked seam.
+## Verification
 
-Every acceptance criterion and every error row names its test. A criterion
-without citable evidence is not a criterion. Use the repository's own test
-tools and gates; do not prescribe a toolchain in the worklog.
+Prove behaviour through the interface. The contract tests of an interface are
+one suite, parametrised over its implementations and placed by the
+repository's test convention next to the interface; each test names the id
+of the clause it proves. A later phase that fakes the interface runs that suite
+against its fake. Never unit-test both sides of a mocked seam. Use the
+repository's own test tools; do not prescribe a toolchain. Documents that
+describe changed behaviour are edited in the phase that changes it.
 
-Make the final phase a quality-gate sweep: formatter, linter, static
-analysis, build, all test levels, and any security or packaging checks.
-Honor repository maintenance contracts (docs, generated artifacts, config
-references, diagrams) inside the phase that changes the affected code.
+## Andon cords
 
-## Readiness checklist
+Two conditions stop the line, the whole worklog rather than one phase. The
+line stays stopped while any andon finding is open.
 
-The README carries a `Readiness checklist` section: one line per defect
-class, each phrased as a check with the command or table that verifies it.
-The author runs it before requesting validation and records the outcome in
-the session journal. [[worklog-validate]] runs it first and holds findings
-outside it to `note` unless an invariant is broken. Minimum lines:
+| Cord    | Pulled when                                                                                                                                                  | Reset by                        |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| Quality | a gate fails at the start of a phase, or at its end outside the phase's own changes; flakes included                                                        | depends on the cause, below     |
+| Design  | a phase cannot be finished without changing a signed-off interface, clause, or node, or needs something its README, phase, and consumed code do not provide | the maintainer, with this skill |
 
-1. Shared diagrams explain the overall system; phase-local sequences and
-   measurements appear only in their owning phase.
-2. Every test has one owning phase and file list; cross-phase references name
-   the owner rather than redeclaring the test.
-3. Every phase-local parameter, config field, flag, injectable field, invariant
-   and limit has one owner and a test; shared values appear once in the README.
-4. Every phase mentioning listening, manual, paid, credentials or a
-   machine-local artifact has `Human required`.
-5. No phase depends on local detail from another phase or on text scheduled
-   for deletion.
-6. No phase creates human-owned configuration or content reserved by Scope.
-7. New conventions do not contradict existing code conventions (cite the
-   file checked).
+A quality andon records its cause. **Own**: code this worklog changed;
+[[worklog-fix]] fixes it. **Foreign**: repository code the worklog did not
+change; [[worklog-fix]] fixes it as a separate commit when commits are
+allowed, and otherwise lists the files it changed in its closing journal line.
+**Environment**: toolchain, containers, network, or credentials; the
+maintainer fixes it and closes the finding. **Unknown**: the cause is unclear;
+[[worklog-fix]] owns it and corrects the cause in the summary when it finds
+it.
+
+Never retry, skip, quarantine, delete, or exclude a gate or test, and never
+alter its timeout, count, or race flags. Rerun only to diagnose.
+
+A design andon means planning missed something. The maintainer's closing
+journal line names the [[worklog-validate]] check that should have caught it.
+A sharpened check applies to the next worklog, never to this one.
+
+## Resetting a design andon
+
+**Re-planning a phase in place** means: revert only the uncommitted changes
+its own work runs made, never a fix another skill made; append a `replan` row to its
+Implementation notes and keep the rest; set it `Not Started`; write its
+re-planned journal line; validate it; and have the maintainer sign off its
+interface again. The andon closes only after that sign-off. A reset that
+changes the tree has the maintainer sign the README again first; edits to
+facts, flows, and imports are covered by the interface sign-off.
+
+- **The raising phase is `Not Started` or `In Progress`:** re-plan it in place.
+- **The interface belongs to a `Complete` or `Reopened` phase:** reset by
+  semver level.
+  - **Patch**, a body-only change: the maintainer closes the andon, files an
+    `R` finding owned by `fix`, and sets the phase `Reopened` when the finding
+    is a blocker or major.
+  - **Minor**, an additive change: every clause of the signed interface stays
+    true for every input, including inputs the extension gives meaning to. An
+    argument, flag, or value that an existing clause maps to an error makes
+    the change Major. Inject a phase that extends the interface without
+    editing it; its suite asserts each original clause on its new inputs, and
+    the original suite passes unchanged.
+  - **Major**, a breaking change: re-plan the owner and every consumer in
+    place, whatever their status; [[worklog-work]] then executes them in
+    order. When that is too large, start a new worklog that imports this one
+    instead.
+- **The raising phase consumes the interface another phase owns:** do both.
+  Re-plan the raising phase so it consumes the changed or injected member, and
+  reset the owner by semver level.
+
+Phase numbers are dotted integers, compared part by part, so `2.10` follows
+`2.9`. An injected phase is `L.k`, where `L` is the highest phase it depends
+on. Never renumber. Injected phases go through validation and interface
+sign-off like any other.
 
 ## Handoff
 
-When the phases are written and the checklist passes: record the run in
-the session journal, leave every phase `Not Started`, and hand the README
-to [[worklog-validate]]. The
-target verdict is `Conditionally ready`. After validation, execution starts
-with [[worklog-work]]. A validation or review that reopens the strategy
-returns here; fix the class of each finding, not the cited line, and map
-every finding ID to its closing edit in the feedback index.
+When the phases are written, leave every phase `Not Started`, add a journal
+line, and hand the worklog to [[worklog-validate]]. Close each finding you
+resolve as Records describes. After a `Ready` verdict and the interface
+sign-off, execution starts with [[worklog-work]].

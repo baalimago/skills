@@ -1,122 +1,62 @@
 # Worklog system
 
 The worklog system turns a multi-step change into a durable, reviewable queue
-for people and coding agents.
+for people and coding agents. A worklog is a package of phases, each
+implementing one interface. The maintainer signs off **what** the system will
+do; agents own **how** it is done and the proof that it works.
 
-## Structure
+[`worklog-plan`](../skills/worklog-plan/SKILL.md) is the single definition of
+the model, the files and their templates, interface kinds, clauses, phase
+classes, records, andon cords, and how a design andon is reset. This page is
+an overview.
 
-Each effort lives in one directory:
+## Lifecycle
 
-```text
-worklogs/<date>-<effort>/
-├── README.md
-├── phase-0-<gate>.md
-├── phase-1-<name>.md
-└── phase-2-<name>.md
-```
+Five skills cover the lifecycle, one verb each:
 
-Phase 0 is optional: a spike, measurement, or decision that gates the later
-phases. Its decision must be `proceed` before an executor starts a later
-phase.
+| Step     | Skill              | Reads                                     | Writes                                   |
+| -------- | ------------------ | ----------------------------------------- | ---------------------------------------- |
+| plan     | `worklog-plan`     | code, architecture, maintainer            | README and phase files                   |
+| validate | `worklog-validate` | the whole worklog                         | `V{n}-{nn}` findings, verdict            |
+| work     | `worklog-work`     | README, one phase, consumed code          | code, implementation notes, status board |
+| review   | `worklog-review`   | README, phases, code                      | `R{n}-{nn}` findings in place            |
+| fix      | `worklog-fix`      | README, owning and consuming phases, code | fixes, closed findings                   |
 
-The README is the router. It contains the goal, glossary, flows, API and
-data-model additions, status board, scope, shared interfaces, invariants,
-parameters with owners, definition of success, validation policy, readiness
-checklist, and session journal. It may also carry a decisions log while the
-design moves, and it carries a feedback index once findings exist. Each phase
-file is an isolated contract with a goal, specification, integration contract,
-acceptance criteria, error coverage, implementation notes, and review findings.
-
-Four skills cover the lifecycle, one verb each:
-
-| Step     | Skill              | Reads                          | Writes                                  |
-| -------- | ------------------ | ------------------------------ | --------------------------------------- |
-| plan     | `worklog-plan`     | code, architecture, maintainer | README and phase files                  |
-| validate | `worklog-validate` | the whole worklog              | `V{n}-{nn}` findings, verdict           |
-| work     | `worklog-work`     | README plus one phase          | code, implementation notes, status board |
-| review   | `worklog-review`   | README, phases, code           | `R{n}-{nn}` findings in place           |
-
-The fifth skill, `worklog-system`, is the overview.
-
-The author sees everything; the executor deliberately sees the README and one
-phase. Whatever spans phases must therefore be in the README, which is why
-planning is two steps: the maintainer signs off on the README before any
-phase file is written.
-
-## Phase lifecycle
-
-Phases move through:
+The maintainer signs off the README, which fixes the tree, then the interface
+set once validation returns `Ready`. Facts and flows stay in flux until that
+second sign-off, which freezes them with the interfaces. Every phase runs the full
+gates before and after its work, and there is no quality-gate phase.
 
 ```text
-Not Started → In Progress → Complete
-                    ↑             │
-                    └─ Reopened ─┘
+Not Started → In Progress → Complete ⇄ Reopened (review N)
+                  │
+                  └─→ Not Started   (design andon re-plan)
 ```
 
-An agent selects the first `Not Started` or `Reopened` phase from the README.
-It implements only that phase, updates its notes and evidence, and then
-updates the README status board and session journal. A `blocker` or `major`
-review finding reopens the phase until the finding is fixed and verified.
-
-## Contracts and evidence
-
-The phase specification is the promise. Acceptance criteria must be
-independently checkable, and each completed criterion must cite a test or a
-repeatable verification command. Integration scenarios prove behavior at the
-real boundary; unit tests cover internal error handling. Error coverage maps
-meaningful failures to their expected result and test.
-
-Implementation notes record only deltas from the plan: decisions, surprises,
-deviations, and commands that were actually run. Do not use them as a second
-specification.
-
-## Convergence rules
-
-Validation and review rounds converge only when a revision removes the class
-of a finding, not the cited line. Four rules make the worklog self-checking:
-
-- **One source of numbers.** Each default, limit, and threshold appears once,
-  in its owner: the README parameters table when shared, the owning phase
-  when local. A phase refers to a value by name and never copies it.
-- **Invariants and limits are tables.** One row per bound actor or per limit,
-  with the mechanism, the injectable field, and the test. A path that is not
-  a row does not exist; a limit no test can reach is not specified.
-- **Human required.** A phase that needs a person declares the handoff
-  artifact and the exact point where the agent stops.
-- **Readiness checklist.** The README carries one line per defect class with
-  the command or table that checks it. The author runs it before requesting
-  validation; the validator runs it first and holds findings outside it to
-  `note` unless an invariant is broken. `Conditionally ready` is the target
-  verdict.
-
-Validation findings use `V{round}-{nn}` IDs; a later round records each
-prior ID as resolved, open, or regressed before raising new ones.
-
-## Review
-
-Review reads the code and reruns the gates; it does not trust implementation
-summaries. Findings use stable IDs such as `R1-01` and a severity: `blocker`,
-`major`, `minor`, or `note`. A `blocker` or `major` finding reopens a phase.
-Each finding gives a precise location, the unmet contract, and a concrete
-failure scenario. Findings belong in the affected phase and in the README
-feedback index. The verdict must say whether the work is ready, independently
-of whether the tests are green.
+Two andon cords stop the whole line: **quality**, when a gate fails (flaky
+tests included, and they are fixed, never retried), and **design**, when a
+signed-off interface would have to change. A clean root review sets the line
+to `done`. Rationale belongs in commit messages, not in the worklog.
 
 ## Running phases repeatedly
 
 From the repository containing the worklog, run:
 
 ```sh
-npx skills@latest add baalimago/skills --skill worklog-work
+npx skills@latest add baalimago/skills
 worklog-loop worklogs/2026-01-01-example/README.md 3
 ```
 
-The loop runs the next eligible phase once per iteration. The bundled wrapper
-uses `go run` to fetch and execute `repeater`, then invokes `clai` with the
-profile stored next to the wrapper. Go is the only loop dependency.
+Each iteration runs one skill: `worklog-fix` when a phase is reopened or a
+finding owned by fix is open, `worklog-review` on the root once every phase is
+complete, and `worklog-work` otherwise. A line that is `done`, waiting on a
+human, or stopped only by the maintainer's andons makes each remaining
+iteration report and exit. The bundled wrapper uses `go run` to fetch and
+execute `repeater`, then invokes `clai` with the profile stored next to the
+wrapper. Go is the only loop dependency.
 
 To use another agent binary, place it after `--`. The command receives the
-generated work prompt as its final argument:
+generated prompt as its final argument:
 
 ```sh
 worklog-loop worklogs/2026-01-01-example/README.md 3 -- claude --print
@@ -129,11 +69,10 @@ The runner must be available on `PATH` and must accept a prompt argument.
 The repository includes an editor-neutral demo:
 
 ```sh
-./scripts/worklog-loop examples/worklog-demo/worklog/README.md 2
+./scripts/worklog-loop examples/worklog-demo/worklog/README.md 3
 ```
 
-This creates two text files under `examples/worklog-demo/project/`. To keep
-the repository clean, copy or clone the repository to a temporary directory
-before running it. The same worklog can be opened in Claude Code, Codex,
-Cursor, or another editor; ask the editor to read the worklog README and
-complete only the next eligible phase.
+It creates two small shell commands and their tests under
+`examples/worklog-demo/project/`, which git ignores, so implementation notes
+record the repository `HEAD` with `+wip`. Copy the repository to a temporary
+directory before running the demo.

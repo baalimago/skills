@@ -1,55 +1,45 @@
 # Phase 1 — greeting
 
-**Status:** Complete
-
-[Back to the worklog](README.md)
+**Parent:** root · **Class:** contract · [README](README.md)
 
 ## Goal
 
-Create a deterministic greeting artifact in the demo project.
+Provide the greeting the rest of the demo depends on.
 
-## Specification
+## Interface
 
-Create `examples/worklog-demo/project/greeting.txt` with exactly this one line:
+Written as the usage comment at the top of
+`examples/worklog-demo/project/greet`.
 
 ```text
-Hello from the worklog demo.
+greet
+  Prints the greeting followed by one newline to stdout, and exits 0.
+  Given any argument, prints "usage: greet" to stderr, prints nothing to
+  stdout, and exits 2.
 ```
 
-Do not add a trailing blank line or other content.
+Consumes: None.
 
-## Integration contract
+## Golden diff
 
-| Trigger         | Observable result                                      | Required side effect              | Prohibited side effect             |
-| --------------- | ------------------------------------------------------ | --------------------------------- | ---------------------------------- |
-| Phase execution | `greeting.txt` exists with the exact expected content. | Create or replace only that file. | Do not change other project files. |
+None.
 
-## Acceptance criteria
+## Removes
 
-- [x] `greeting.txt` contains exactly the specified line.
-- [x] `test "$(cat examples/worklog-demo/project/greeting.txt)" = "Hello from the worklog demo."` passes.
-- [x] `git diff -- examples/worklog-demo/project/greeting.txt` shows only the intended file.
+None.
 
-## Error coverage
+## Local facts
 
-| Failure                     | Expected outcome                             | Test                                    |
-| --------------------------- | -------------------------------------------- | --------------------------------------- |
-| Target directory is missing | Create the directory before writing.         | `test -d examples/worklog-demo/project` |
-| Content differs             | Replace it with the exact specified content. | Exact-content shell assertion above.    |
+None.
+
+## Human required
+
+None.
 
 ## Implementation notes
 
-Completed 2026-08-07 by clai (focused worker, session 2026-08-07).
+Not started.
 
-Decisions:
+## Review findings
 
-- The file ends with a single newline terminator (29 bytes, `2e 0a` tail). This is the canonical one-line text form; the contract forbids a trailing blank line, not the line terminator.
-- The git diff acceptance check is vacuous in this repository state because the whole tree is untracked (`git status` shows `?? examples/`). Verified instead by directory listing that no other project files were created or changed.
-
-Verification commands and results (all PASS):
-
-- `test -d examples/worklog-demo/project`
-- `test "$(cat examples/worklog-demo/project/greeting.txt)" = "Hello from the worklog demo."`
-- `wc -c < examples/worklog-demo/project/greeting.txt` -> 29
-- `wc -l < examples/worklog-demo/project/greeting.txt` -> 1
-- `tail -c 2 examples/worklog-demo/project/greeting.txt | od -An -tx1` -> `2e 0a`
+None.

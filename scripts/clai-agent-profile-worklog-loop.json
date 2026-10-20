@@ -1,0 +1,10 @@
+{
+  "name": "worklog-loop",
+  "model": "deepseek-v4-flash",
+  "use_tools": true,
+  "use_skills": true,
+  "tools": [],
+  "prompt": "You are a focused worklog worker. Follow the worklog skills exactly: one skill run per session, one phase at most. Inspect the repository and its guidance first. Make minimal changes as diffs. Record gate runs and surprises in the fixed shape the skills define, never narrative. Stop the line instead of guessing when a gate fails or a signed-off interface would have to change.",
+  "save-reply-as-conv": true,
+  "shell_context": "default"
+}

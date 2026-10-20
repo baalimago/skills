@@ -1,119 +1,133 @@
 ---
 name: worklog-review
-description: Review a phased worklog implementation against its contract and critique it in place. Use when reviewing a completed or in-progress phase, auditing an implementation against its spec, or filing review feedback into a worklog. Complements worklog-plan (design), worklog-validate (checking), and worklog-work (execution and fixing).
+description: Review a worklog phase's implementation against its signed-off interface and critique it in place; reviewing the root is the final sweep that closes the worklog. Use when reviewing a completed phase, auditing an implementation against its interface, or filing review feedback into a worklog. Complements worklog-plan (design), worklog-validate (checking), worklog-work (execution), and worklog-fix (fixing).
 license: MIT
 metadata:
-  version: "1.2"
+  version: "2.0"
 ---
 
 # Worklog review
 
-Review the code an executing agent produced against the contract the worklog
-promised, and record the critique **in the worklog itself** — the README and the
-affected phase files — so the next contributor routes off it. [[worklog-plan]]
-owns layout and phase-file shape; [[worklog-work]] owns lifecycle and fixing.
-Read them first if the structure is unfamiliar.
+Review the code an executing agent produced against the interfaces the
+worklog promised, and record the critique **in the worklog itself**, so the
+next contributor routes off it. [[worklog-plan]] owns the layout, the phase
+classes, and the records; [[worklog-work]] owns execution; [[worklog-fix]]
+closes what you find. Review only `Complete` phases, or the root.
 
-The review is worthless if it only reads the implementation notes. Notes report
-what the author believes they did. A review establishes what the code actually
-does. Those differ precisely where defects live.
+The review is worthless if it only reads the implementation notes. Notes
+report what the author believes they did. A review establishes what the code
+actually does. The two differ exactly where defects live.
 
 ## Stance: verify independently
 
-- **Re-run the gates yourself.** Formatter, linter, static analysis, build, unit
-  tests, integration tests — whatever the repository requires. A claimed "all
-  pass" is a hypothesis until you reproduce it. Cite the commands you ran and
-  their outcomes in the verdict.
-- **Read the code, not the summary.** Open every file the phase touched. Trace
-  the real call paths. Confirm each acceptance criterion against a citable test
-  that exercises the real boundary, not a mock that could pass on both sides of a
-  severed seam.
-- **Record verified-good, not just faults.** "I confirmed X holds on every path"
-  is information the next reviewer should not have to re-derive.
+- **Re-run every gate yourself**, exactly as the Validation policy names
+  them. A claimed "all pass" is a hypothesis until you reproduce it. Cite the
+  commands and their outcomes in the verdict.
+- **Hunt flaky tests.** Run the full suite twice, in random order with a
+  fresh seed where the runner allows, otherwise twice in its default order. A
+  test whose result differs between the runs is a quality andon: pull the cord
+  as [[worklog-work]] describes, then finish the review.
+- **Read the code, not the summary.** Open every file the phase touched and
+  trace the real call paths.
+- **Record verified-good, not just faults.** "I confirmed X holds on every
+  path" is information the next reviewer should not have to re-derive.
+
+## Check by class
+
+- **Contract.** The written interface matches the phase's Interface block,
+  token for token after formatting. Every clause has a test that names its id
+  and goes through the interface. Every fake used anywhere passes the same
+  contract suite, except a stub child that exercises a composition failure
+  clause, which breaks the child's contract only in the way that clause
+  names. The implementation exposes no public member the interface lacks.
+- **Composition.** The scenarios run with the real children wired in. Every
+  golden change satisfies its golden-diff row, and no other golden changed.
+- **Prune.** No golden changed. No removed name remains outside its allowed
+  hits. Every listed consumer is re-pointed.
+
+In every class, the documents that describe the changed behaviour were
+edited in the same phase.
 
 ## Technique: trace the invariant through every branch
 
-Most missed defects are not wrong lines — they are correct lines on a path
-nobody enumerated. For each invariant the worklog asserts ("X is captured on
-every path", "Y is always released", "Z is idempotent"):
+Most missed defects are not wrong lines. They are correct lines on a path
+nobody enumerated. For each invariant a clause cites ("X is captured on every
+path", "Y is always released", "Z is idempotent"):
 
 1. Name the functions where X must hold.
-2. Enumerate **every** conditional branch, early return, error path, retry, and
-   loop iteration in them.
-3. Confirm X holds on each — especially the failure, empty-result, timeout, and
-   retry branches. Guarantees are dropped there far more often than on the happy
-   path, and those branches are usually the least tested.
-4. Follow the value to its destination. Capturing a value is not recording it: a
-   field set at the source but discarded by the event/response/writer that
-   carries it is still a leak. Chase it to the sink.
+2. Enumerate **every** conditional branch, early return, error path, retry,
+   and loop iteration in them.
+3. Confirm X holds on each, especially the failure, empty-result, timeout,
+   and retry branches. Guarantees are dropped there far more often than on
+   the happy path, and those branches are usually the least tested.
+4. Follow the value to its destination. Capturing a value is not recording
+   it: a field set at the source but discarded by the event, response, or
+   writer that carries it is still a leak. Chase it to the sink.
 
-This is what separates a real review from a skim. When a resource is costly or
-safety-critical (spend, tokens, locks, money, PII), assume the failure branches
-are where it leaks and start there.
+When a resource is costly or safety-critical (spend, tokens, locks, money,
+PII), assume the failure branches are where it leaks and start there.
+
+## The root review
+
+When every phase is `Complete`, review the root. Reviewing a node covers its
+whole subtree, so the root review is the final sweep of the effort: every
+gate at every test level, the end-to-end scenarios of every README flow,
+every document the effort changed, and the journal record of every Human
+check. A Human check with no record is a finding owned by `maintainer`; set
+`**Line:** waiting on human: root`.
+
+A root review sets `**Line:** done` and adds its done journal line only when
+the line is `running` and the Findings table holds no open or regressed
+finding of any severity. Otherwise the open findings are fixed and the root
+is reviewed again.
 
 ## Findings
 
-- Stable ID per finding: `R{round}-{nn}` (e.g. `R1-07`). IDs never get reused or
-  renumbered across rounds.
-- Severity: `blocker`, `major`, `minor`, or `note`, the vocabulary
-  [[worklog-validate]] defines. A `blocker` or `major` finding reopens the
-  phase; `minor` and `note` do not, unless the maintainer says otherwise.
-- Precise reference: `file:line`, and the exact contract clause or acceptance
-  criterion left unmet.
-- Phrase as actionable work with a checkbox, so the fixer can close it directly.
-- Give a concrete failure scenario: the input or state, and the wrong result or
+- A stable ID per finding, `R{round}-{nn}`, e.g. `R1-07`.
+- A severity:
+  - `blocker`: enacts, loses, or leaks something it must not.
+  - `major`: a clause is unmet, with a reachable wrong result.
+  - `minor`: the behaviour is right, but the evidence or documentation
+    disagrees.
+  - `note`: verified good, with a caveat the next contributor must not
+    re-derive. Notes stay in the phase file and get no Findings row.
+- A precise reference: `file:line`, and the clause left unmet.
+- Actionable work with a checkbox, so the fixer can close it directly.
+- A concrete failure scenario: the input or state, and the wrong result or
   cost it produces. "Undercounts on retry" beats "retry looks fragile".
+
+A finding whose root cause is the interface itself is not an `R` finding.
+When a clause is missing, or a member cannot carry what a consumer needs,
+file a design andon as [[worklog-work]] describes. When a clause admits two
+readings, hold the code to the stricter one and file an `R` finding.
 
 ## Record it in place
 
-Never write a standalone review document — a second source of truth the next
-agent will not read. Everything lands in the worklog, in the same change:
+Never write a standalone review document; it becomes a second source of
+truth the next agent will not read. Everything lands in the worklog, in the
+same change:
 
-1. **Affected phase file** — replace `None.` in the `Review findings` section,
-   or append a `### Review N (date)` subsection, with the findings that
-   concern that phase and what you verified good. If the phase was specced
-   with a task it did not fully meet, say so there: the phase's own Goal/AC
-   missed the branch.
-2. **README status board** — reflect the true status of each reviewed phase. A
-   phase with an open `blocker` or `major` finding is no longer done; annotate
-   the row (or set `Reopened (review N)`) and point to where the fix is
-   tracked. A stale completion status is how defects survive.
-3. **README feedback index** — create the section when it is absent, then add
-   one row per finding: ID, severity, phase link, one-line summary. This is
-   the review's table of contents.
-4. **README session journal** — a `Review N` entry: the commands you re-ran
-   and their results, the overall verdict, and cross-cutting observations that
-   are not themselves single findings.
-5. **Elevate new cross-phase invariants.** When the review discovers a rule that
-   spans phases (often the root cause behind several findings), promote it into
-   the README `Invariants` section so future phases inherit it — do not leave
-   it buried in one phase's findings.
+1. **Affected phase file:** under `## Review findings`, replace `None.` in the
+   first round, or add `### Review N, date` in later rounds, with the
+   findings for that phase and what you verified good.
+2. **README status board:** set `Reopened (review N)` on every phase with a
+   `blocker` or `major` finding. A stale completion status is how defects
+   survive.
+3. **README Findings table:** one row per blocker, major, or minor finding,
+   owned by `fix`, or by `plan` for a rule that spans phases.
+4. **README journal:** one line with the commands you re-ran and the verdict.
 
 ## Verdict
 
-State plainly whether the work is ready. "Ships clean through the gates" and
-"correct" are different claims; do not let green gates stand in for a verdict.
-If it is not ready, say so and let the findings carry the reasons.
-
-## Consolidating the fix: reopen vs. addendum
-
-Two ways to route the fixes; the choice is the maintainer's:
-
-- **Reopen the affected phases** when each fix is local to its phase and an agent
-  can resolve it within that phase's reading contract.
-- **Add a single addendum phase** (e.g. a new final phase) when the fixes are
-  many, small, and cross-cutting, or share a design decision. This keeps the
-  executing agent's two-file reading contract clean — they read the README and
-  the addendum phase, which references the originals — instead of juggling
-  several reopened phases at once. Annotate the original board rows to point at
-  the addendum.
-
-Either way the feedback index points at where the work now lives, and the
-executing agent picks up the first non-complete phase off the board.
+State plainly whether the work is ready; green gates are not a verdict. If it
+is not ready, the findings carry the reasons.
 
 ## Rounds
 
-Reviews are numbered. A later review that revisits earlier findings uses the
-next round number and its own `R{n}-*` IDs; it also records whether prior
-findings were resolved, still open, or regressed. The worklog thus carries the
-full review history in one place.
+The round is one more than the highest `R` round in the Findings table or the
+journal; an `R` finding filed outside a review, such as a patch reset, opens
+round 1 when none exists. A later round first records whether each earlier
+finding is resolved, still open, or regressed, and sets `Regressed` on those
+that regressed. A re-review of a node files only regressions and findings in
+code changed since the previous round. The first root review always sweeps
+the whole tree.

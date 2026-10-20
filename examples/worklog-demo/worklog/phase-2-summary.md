@@ -1,45 +1,50 @@
 # Phase 2 — summary
 
-**Status:** Not Started
-
-[Back to the worklog](README.md)
+**Parent:** root · **Class:** composition · [README](README.md)
 
 ## Goal
 
-Create a second artifact that proves the first phase completed.
+Implement the demo's exported interface by wiring in the real `greet`.
 
-## Specification
+## Interface
 
-Create `examples/worklog-demo/project/summary.txt` with exactly these two
-lines:
+Written as the usage comment at the top of
+`examples/worklog-demo/project/summarize`.
 
 ```text
-Worklog demo complete.
-Greeting artifact verified.
+summarize
+  Runs the greet in its own directory. When greet exits 0 and its stdout is
+  exactly the greeting followed by one newline, prints
+  "Worklog demo complete." and "Greeting verified." on two lines, and
+  exits 0.
+  When greet is missing, exits non-zero, or prints anything else, prints
+  "greeting check failed" to stderr, prints nothing to stdout, and exits 1.
 ```
 
-Before marking this phase complete, verify that `greeting.txt` still contains
-the exact Phase 1 content.
+Consumes: `greet` (phase 1).
 
-## Integration contract
+## Golden diff
 
-| Trigger         | Observable result                                    | Required side effect                  | Prohibited side effect                          |
-| --------------- | ---------------------------------------------------- | ------------------------------------- | ----------------------------------------------- |
-| Phase execution | Both demo artifacts contain their specified content. | Create or replace only `summary.txt`. | Do not rewrite the greeting or unrelated files. |
+| Golden                                               | Change                                                       |
+| ---------------------------------------------------- | ------------------------------------------------------------ |
+| `examples/worklog-demo/project/tests/summarize.out`  | new; holds exactly `Worklog demo complete.` and `Greeting verified.` |
 
-## Acceptance criteria
+## Removes
 
-- [ ] Phase 1's greeting assertion passes.
-- [ ] `summary.txt` contains exactly the two specified lines.
-- [ ] `git diff -- examples/worklog-demo/project` shows only the two demo artifacts.
+None.
 
-## Error coverage
+## Local facts
 
-| Failure                              | Expected outcome                             | Test                                   |
-| ------------------------------------ | -------------------------------------------- | -------------------------------------- |
-| Greeting artifact is absent or wrong | Stop and report the unmet Phase 1 contract.  | Phase 1 exact-content shell assertion. |
-| Summary content differs              | Replace it with the exact specified content. | Exact-content shell assertion.         |
+None.
+
+## Human required
+
+None.
 
 ## Implementation notes
 
-<!-- Record only decisions, deviations, and verification commands here. -->
+Not started.
+
+## Review findings
+
+None.

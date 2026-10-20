@@ -18,29 +18,30 @@ npx skills@latest add baalimago/skills --skill worklog-work
 
 | Skill                                                  | Use it for                                                               |
 | ------------------------------------------------------ | ------------------------------------------------------------------------ |
-| [`worklog-system`](skills/worklog-system/SKILL.md)     | Learn the lifecycle, layout, and contract rules; choose the right skill. |
-| [`worklog-plan`](skills/worklog-plan/SKILL.md)         | Design and write a phased worklog: README, parameters, phase contracts.  |
-| [`worklog-validate`](skills/worklog-validate/SKILL.md) | Check worklog contracts, criteria, error coverage, and test evidence.    |
-| [`worklog-work`](skills/worklog-work/SKILL.md)         | Execute the next eligible phase, or fix reopened findings.               |
-| [`worklog-review`](skills/worklog-review/SKILL.md)     | Audit implementation phases against their contracts and record findings. |
+| [`worklog-system`](skills/worklog-system/SKILL.md)     | Learn what a worklog is and choose the right lifecycle skill.            |
+| [`worklog-plan`](skills/worklog-plan/SKILL.md)         | Design a phased worklog: a README and one interface per phase.           |
+| [`worklog-validate`](skills/worklog-validate/SKILL.md) | Check a planned worklog against a fixed set of checks before sign-off.   |
+| [`worklog-work`](skills/worklog-work/SKILL.md)         | Execute the next phase between full gate runs; stop the line on red.     |
+| [`worklog-review`](skills/worklog-review/SKILL.md)     | Audit implementation phases against their interfaces and record findings. |
+| [`worklog-fix`](skills/worklog-fix/SKILL.md)           | Close validation and review findings, and restart a stopped line.        |
 | [`prompting`](skills/prompting/SKILL.md)               | Author agent prompts to one standard: skeleton, style, template rules.   |
 
-`worklog-system` is the overview. The four lifecycle skills are one verb each: `plan → validate → work → review`.
+`worklog-system` is the map. The five lifecycle skills are one verb each: `plan → validate → work → review → fix`.
 
 ## Worklog system
 
-See [`docs/worklog-system.md`](docs/worklog-system.md) for the lifecycle,
-phase contracts, review process, and `worklog-loop` usage.
+See [`docs/worklog-system.md`](docs/worklog-system.md) for the model,
+interfaces, phase classes, andon cords, and `worklog-loop` usage.
 
 Try the system with the editor-neutral
 [worklog demo](examples/worklog-demo/worklog/README.md). It creates two small
-text artifacts and does not require a language toolchain.
+shell commands and does not require a language toolchain.
 
 The loop and its portable `clai` profile are included in the repository:
 
 ```sh
 git clone https://github.com/baalimago/skills.git
-./scripts/worklog-loop path/to/worklog/README.md
+./skills/scripts/worklog-loop path/to/worklog/README.md
 ```
 
 ## License
