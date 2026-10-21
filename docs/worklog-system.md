@@ -27,6 +27,11 @@ set once validation returns `Ready`. Facts and flows stay in flux until that
 second sign-off, which freezes them with the interfaces. Every phase runs the full
 gates before and after its work, and there is no quality-gate phase.
 
+Each phase file carries its interface, the members it consumes, acceptance
+criteria, the expected test cases, and an error-management table. The plan
+skill defines each table's shape, and validation and review check that every
+row has its evidence.
+
 ```text
 Not Started → In Progress → Complete ⇄ Reopened (review N)
                   │

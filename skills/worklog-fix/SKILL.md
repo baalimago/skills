@@ -3,7 +3,7 @@ name: worklog-fix
 description: Fix open findings in a worklog, whether validation findings in its documents, review findings in its code, or quality andons that stopped its line. Use when asked to fix, close, or resolve worklog findings, to restart a stopped line, or to fix a flaky test a worklog surfaced. Changes to interfaces or the tree are worklog-plan.
 license: MIT
 metadata:
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Worklog fix
@@ -26,6 +26,9 @@ A fix changes bodies, never the design or the bar:
   in the Validation policy.
 - Never weaken a test's assertions. A flaky test keeps its assertions; its
   cause is fixed.
+- Never drop or weaken an acceptance criterion, a `Test cases` row, or an
+  `Error management` row. Adding a row that proves what the interface already
+  declares is a fix; weakening one is owned by `plan`.
 
 A finding that needs any of these is owned by `plan`. After the interface
 sign-off it is a design andon: file it as [[worklog-work]] describes and

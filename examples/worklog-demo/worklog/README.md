@@ -33,10 +33,6 @@ user          summarize                 greet
 | 1   | [greeting](phase-1-greeting.md) | root   | contract    | `greet`     | Not Started |
 | 2   | [summary](phase-2-summary.md)   | root   | composition | `summarize` | Not Started |
 
-### Imports
-
-None.
-
 ## Scope
 
 Builds `greet` and `summarize` with their tests. Does not change the skills,

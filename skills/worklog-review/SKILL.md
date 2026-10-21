@@ -3,7 +3,7 @@ name: worklog-review
 description: Review a worklog phase's implementation against its signed-off interface and critique it in place; reviewing the root is the final sweep that closes the worklog. Use when reviewing a completed phase, auditing an implementation against its interface, or filing review feedback into a worklog. Complements worklog-plan (design), worklog-validate (checking), worklog-work (execution), and worklog-fix (fixing).
 license: MIT
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Worklog review
@@ -44,6 +44,9 @@ actually does. The two differ exactly where defects live.
   golden change satisfies its golden-diff row, and no other golden changed.
 - **Prune.** No golden changed. No removed name remains outside its allowed
   hits. Every listed consumer is re-pointed.
+- **Evidence.** Every Acceptance criteria row has a passing test or repeatable
+  command. Every Test cases row exists at its stated level and proves its
+  clause or criterion. Every Error management row produces its named outcome.
 
 In every class, the documents that describe the changed behaviour were
 edited in the same phase.

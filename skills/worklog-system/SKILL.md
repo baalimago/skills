@@ -3,7 +3,7 @@ name: worklog-system
 description: Overview of the interface-based worklog system and router to its five lifecycle skills. Use to learn what a worklog is, or to choose between worklog-plan (design), worklog-validate (checking), worklog-work (execution), worklog-review (audit), and worklog-fix (repair).
 license: MIT
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Worklog system
@@ -37,7 +37,8 @@ that skill when its step applies.
 ## Where things are defined
 
 [[worklog-plan]] is the single definition of the model, the file templates,
-interface kinds and clauses, phase classes, the records (statuses, the `Line`
+interface kinds and clauses, the phase tables (acceptance criteria, test
+cases, and error management), phase classes, the records (statuses, the `Line`
 marker, findings, the journal, sign-offs), andon cords, and design-andon
 resets. The other skills reference it; this skill repeats none of it.
 

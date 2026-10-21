@@ -3,7 +3,7 @@ name: worklog-validate
 description: Validate a planned worklog against a fixed set of structural and design checks before its interface set is signed off. Use when asked whether a worklog is complete, consistent, or ready to execute. Planning is worklog-plan; fixing findings is worklog-fix.
 license: MIT
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Worklog validate
@@ -45,7 +45,11 @@ These need no judgement. Run them with tools wherever possible.
 1. **Tree.** Every phase file has exactly one status-board row, and every row
    a file. Each node's parent exists. Numbers are unique, and an injected
    `L.k` follows `L`. Each class is contract, composition, or prune. Each
-   sub-package has a README section. Every interface sign-off in the journal
+   sub-package has a README section. Every phase file planned under this
+   template carries every section, including `Acceptance criteria`, `Test
+   cases`, and `Error management`; a section with no rows says `None.` A
+   worklog planned under an older template is checked against the sections its
+   plan wrote and is never retrofitted. Every interface sign-off in the journal
    follows a `Ready` verdict that covers the phases it names.
 2. **Interfaces compile together.** Assemble every Interface block into one
    unit, with stubs that copy the real signatures of imported members from the
@@ -54,10 +58,11 @@ These need no judgement. Run them with tools wherever possible.
    instead that every consumed member is declared by its provider under the
    same name and signature, and record `inspection` as the command.
 3. **Dependencies.** Every member in a phase's `Consumes` is declared by a
-   lower-numbered phase or by an import listed under the status board. The
-   language runtime, the shell, and standard tools are not members. There is
-   no cycle. No phase changes a member that another phase declares, except an
-   injected phase that extends it without editing it.
+   lower-numbered phase or by repository code or another worklog under the
+   name and signature it cites, confirmed by inspection. The language runtime,
+   the shell, and standard tools are not members. There is no cycle. No phase
+   changes a member that another phase declares, except an injected phase that
+   extends it without editing it.
 4. **Clauses.** Every member has at least one clause. No clause names a test,
    a source file of its own implementation, or a step a caller cannot
    observe; a clause may name a consumed member and the path or name it is
@@ -65,7 +70,10 @@ These need no judgement. Run them with tools wherever possible.
    triggered through the interface, with real providers, fakes that pass the
    provider's contract tests, or the stub children [[worklog-plan]] allows.
    Every cited invariant id exists, and every invariant is cited by a clause
-   of each member it binds.
+   of each member it binds. Every clause, invariant, and acceptance criterion
+   has at least one `Test cases` row, and every `Proves` value names a declared
+   clause, invariant, or criterion. Every `Error management` row names its test
+   or repeatable command.
 5. **Placement.** Each invariant and parameter in a Root facts, Local facts,
    or sub-package section sits at the lowest node that contains everything it
    binds, and is defined only there. A literal that two nodes each state is a

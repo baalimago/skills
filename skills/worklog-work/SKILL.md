@@ -3,7 +3,7 @@ name: worklog-work
 description: Execute the next eligible phase of a signed-off worklog, bracketed by full gate runs that stop the line on any failure. Use when asked to implement, continue, or pick up a worklog phase. Designing is worklog-plan; checking is worklog-validate; auditing is worklog-review; fixing findings is worklog-fix.
 license: MIT
 metadata:
-  version: "3.0"
+  version: "3.1"
 ---
 
 # Worklog work
@@ -52,20 +52,23 @@ to the `Line` marker and stop. Fix nothing. Otherwise set the phase
 1. Write the interface, its data types, and its clauses verbatim to the path
    the phase names. Verbatim means token-identical after the repository's
    formatter.
-2. Write the contract tests through the interface only: one suite,
-   parametrised over every implementation including any fake, with at least
-   one test per clause. Each test names the id of the clause it proves.
+2. Write the phase's Test cases rows through the interface only. The contract
+   suite is one suite, parametrised over every implementation including any
+   fake, with at least one test per clause, and each test names the id of the
+   clause it proves. Reach every Acceptance criteria and Error management row
+   by its named test; a row the phase cannot satisfy is a design andon.
 3. Implement until the tests pass.
 
 **Composition.** Capture any golden the phase needs that does not exist yet,
 from the code as it stands. Wire the children to meet the interface and run
-the scenarios with the real children; a failure clause may use the stub child
-[[worklog-plan]] allows. Regenerate the goldens: every change must satisfy its
+the scenarios in the phase's Test cases table with the real children; a
+failure clause may use the stub child [[worklog-plan]] allows. Reach every
+Acceptance criteria row. Regenerate the goldens: every change must satisfy its
 golden-diff row, and no other golden may change.
 
 **Prune.** Remove each member in the Removes table and re-point each
 consumer. No golden changes, and a search for each removed name finds nothing
-outside its allowed hits.
+outside its allowed hits. Reach every Acceptance criteria row.
 
 In every class, edit the documents that describe the behaviour you change,
 in this phase. Never edit a test another phase wrote. Commit only when the
@@ -89,6 +92,11 @@ off as [[worklog-plan]] describes and stop. Never fabricate the artifact or
 skip the step.
 
 ## Finishing
+
+Walk the phase's Acceptance criteria, Test cases, and Error management tables
+and confirm every row against its named test or repeatable command. A row the
+phase cannot satisfy, or a test the plan named that cannot be written, is a
+design andon.
 
 Run every gate twice, in random order with a fresh seed where the runner
 allows. When a test this phase added fails, or a failure traces to code this

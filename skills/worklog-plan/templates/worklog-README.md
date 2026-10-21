@@ -20,10 +20,6 @@
 | #   | Node | Parent | Class | Interface | Status |
 | --- | ---- | ------ | ----- | --------- | ------ |
 
-### Imports
-
-None.
-
 ## Scope
 
 <What this effort does not build, including anything a human must author.>

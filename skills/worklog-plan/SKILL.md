@@ -3,7 +3,7 @@ name: worklog-plan
 description: Design and write a phased implementation worklog, a README that holds the design and phase files that each implement one interface. Use when asked to plan, design, draft, or create a worklog or phased implementation plan, to revise one after validation, or to reset a design andon. Execution is worklog-work; checking is worklog-validate.
 license: MIT
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Worklog plan
@@ -100,10 +100,10 @@ language's own documentation form. A clause states one observable behaviour:
 what the member returns, each error it raises, each invariant it upholds,
 cited by id. A clause may name a member it consumes and the path or name it
 is located by. It names no test, no source file of its own implementation,
-and no step a caller cannot observe; the executor derives and names the
-tests. The path an interface is written to is part of the interface, and a
-consumer may rely on it. Clauses are numbered in order within each member,
-and `{member}.{n}` names one, such as `evaluate.2`.
+and no step a caller cannot observe; the phase's Test cases table names the
+tests that prove it. The path an interface is written to is part of the
+interface, and a consumer may rely on it. Clauses are numbered in order within
+each member, and `{member}.{n}` names one, such as `evaluate.2`.
 
 ```python
 class PolicyEvaluator(Protocol):
@@ -169,10 +169,10 @@ the fact it decides.
    signs it off, which fixes the tree: nodes, parents, classes, numbers, and
    Scope.
 2. **Phase files.** Write each phase from the approved README. Root facts,
-   sub-package facts, Flows, and Imports stay in flux until the interface
-   sign-off; record each edit as a journal line. A phase may not add a node
-   or move a member between nodes; if writing one reveals the need, stop and
-   get the README signed again first.
+   sub-package facts, and Flows stay in flux until the interface sign-off;
+   record each edit as a journal line. A phase may not add a node or move a
+   member between nodes; if writing one reveals the need, stop and get the
+   README signed again first.
 3. **Interface sign-off.** Run [[worklog-validate]] until the verdict is
    `Ready`. Then extract every phase's Interface section, and every README
    edit made since the README sign-off, into one view and have the maintainer
@@ -233,12 +233,8 @@ The README states the finished design, not the argument that produced it.
 Keep investigations, measurements and rejected alternatives out.
 
 - **Flows** are diagrams, one per trigger. Participants may include external
-  actors. Every call arrow targets a declared member or an import; every
+  actors. Every call arrow targets a declared member or a consumed one; every
   reply arrow returns from a call drawn in the same flow.
-- **Imports** list one line per member: `package:member · kind · used by
-  phases`. Cite a package that has no worklog by repository and tag. A fake of
-  an imported system that cannot run in the gates is a recorded fixture; name
-  its source here.
 - **Facts** live in Root facts, Local facts, and sub-package sections. An
   invariant is a statement and the members it binds; its proof lives in the
   clauses that cite its id. A parameter is `Parameter | Default | Decided by`,
@@ -260,10 +256,30 @@ Keep investigations, measurements and rejected alternatives out.
 - **Consumes**: one line per member, `member (phase N)` or
   `package:member (import)`. The language runtime, the shell, and standard
   tools are not members. Anything a phase needs from elsewhere arrives
-  through a consumed member.
+  through a consumed member. A fake of a consumed system that cannot run in
+  the gates is a recorded fixture; name its source in `Consumes`.
+- **Acceptance criteria**: a table `# | Criterion | Proves | Proof`, one row
+  per observable outcome the phase promises. `Proves` names the clause or
+  invariant it derives from, and `Proof` names the test or repeatable command
+  that proves it. A criterion without citable evidence is not a criterion.
+- **Test cases**: a table `Test | Level | Proves | Given | Then | Must not`,
+  one row per test the phase expects. `Level` is contract suite, integration
+  scenario, unit, or repeatable command. `Proves` names a clause, an
+  invariant, or an acceptance criterion. `Must not` names a side effect the
+  test forbids. Every clause and every acceptance criterion has at least one
+  row.
+- **Error management**: a table `Failure | Expected outcome | Test`, one row
+  per meaningful failure the interface can produce. `Expected outcome` names
+  the code, reason, and action tokens, or the exact refusal, that the phase's
+  clauses specify. A phase with no failure path writes `None.` in the section.
 - **Removes** (prune): `Member | Consumers | Re-pointed to | Allowed hits`. No
   hit outside its row is allowed.
 - **Local facts**: invariants and parameters that bind only this phase.
+
+The three tables follow the phase's class. A contract phase traces its
+clauses; a composition phase traces the flows it implements and every
+golden-diff row; a prune phase traces its Removes rows. An empty section says
+`None.`
 
 ## Human-required steps
 
@@ -321,7 +337,7 @@ Implementation notes and keep the rest; set it `Not Started`; write its
 re-planned journal line; validate it; and have the maintainer sign off its
 interface again. The andon closes only after that sign-off. A reset that
 changes the tree has the maintainer sign the README again first; edits to
-facts, flows, and imports are covered by the interface sign-off.
+facts and flows are covered by the interface sign-off.
 
 - **The raising phase is `Not Started` or `In Progress`:** re-plan it in place.
 - **The interface belongs to a `Complete` or `Reopened` phase:** reset by
