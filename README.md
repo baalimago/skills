@@ -25,6 +25,8 @@ npx skills@latest add baalimago/skills --skill worklog-work
 | [`worklog-review`](skills/worklog-review/SKILL.md)     | Audit implementation phases against their interfaces and record findings. |
 | [`worklog-fix`](skills/worklog-fix/SKILL.md)           | Close validation and review findings, and restart a stopped line.        |
 | [`prompting`](skills/prompting/SKILL.md)               | Author agent prompts to one standard: skeleton, style, template rules.   |
+| [`review`](skills/review/SKILL.md)                     | Be one adversarial reviewer with a named profile and evidence standard. |
+| [`spawn-review`](skills/spawn-review/SKILL.md)         | Fan out N parallel reviewers running `review`, then verify and fix.     |
 
 `worklog-system` is the map. The five lifecycle skills are one verb each: `plan → validate → work → review → fix`.
 
