@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- verbatim:head -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-eOm/fA2K50QZbL0r87Njiy+UhOzheGw4JYovssdTHpo=' 'sha256-fK6juVPgKFUO9/1koFE+D+rkVov+AxRlMIOGFNuXDnw='; style-src 'self'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/utilities.css">
+<script type="importmap">
+{
+  "imports": {
+    "#lib/": "/js/lib/",
+    "#stores/": "/js/stores/",
+    "#components/": "/js/components/"
+  }
+}
+</script>
+<script type="module" src="/js/main.js"></script>
+<link rel="modulepreload" href="/js/lib/lazy-define.js">
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<!-- /verbatim:head -->
+<title>Plan the day in one place · Acme</title>
+<meta name="description" content="A todo list and a profile that live in your browser. No account required.">
+<link rel="canonical" href="https://acme.example/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Acme">
+<meta property="og:description" content="A todo list and a profile that live in your browser.">
+<meta property="og:url" content="https://acme.example/">
+<meta property="og:image" content="https://acme.example/assets/og/hero.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Acme placeholder: a white square on a dark green field">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "WebSite", "name": "Acme", "url": "https://acme.example/" }
+</script>
+<meta name="theme-color" content="#1b4332">
+<script type="speculationrules">
+{ "prefetch": [{ "urls": ["/todo.html"], "eagerness": "moderate" }] }
+</script>
+</head>
+<body>
+<!-- verbatim:header -->
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/">Acme</a>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="/" aria-current="page">Home</a></li>
+      <li><a href="/todo.html">Todos</a></li>
+      <li><a href="/profile.html">Profile</a></li>
+    </ul>
+  </nav>
+</header>
+<!-- /verbatim:header -->
+<main id="main">
+  <section class="hero">
+    <h1>Plan the day in one place</h1>
+    <p>Keep a todo list and a profile. Everything stays in your browser.</p>
+    <p><a class="button" href="/todo.html">Open your todos</a></p>
+    <img src="/assets/hero.svg" alt="" width="960" height="540" fetchpriority="high">
+  </section>
+</main>
+<!-- verbatim:footer -->
+<footer class="site-footer">
+  <p>Acme example app. No framework, no build step.</p>
+</footer>
+<!-- /verbatim:footer -->
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- verbatim:head -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-eOm/fA2K50QZbL0r87Njiy+UhOzheGw4JYovssdTHpo=' 'sha256-fK6juVPgKFUO9/1koFE+D+rkVov+AxRlMIOGFNuXDnw='; style-src 'self'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/utilities.css">
+<script type="importmap">
+{
+  "imports": {
+    "#lib/": "/js/lib/",
+    "#stores/": "/js/stores/",
+    "#components/": "/js/components/"
+  }
+}
+</script>
+<script type="module" src="/js/main.js"></script>
+<link rel="modulepreload" href="/js/lib/lazy-define.js">
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<!-- /verbatim:head -->
+<title>Todos · Acme</title>
+<meta name="description" content="Your todo list, stored in this browser.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1b4332">
+<link rel="stylesheet" href="/js/components/todo-list/todo-list.css">
+<link rel="modulepreload" href="/js/components/todo-list/todo-list.js">
+<link rel="modulepreload" href="/js/components/todo-list/TodoList.js">
+<link rel="modulepreload" href="/js/components/todo-item/todo-item.js">
+<link rel="modulepreload" href="/js/components/todo-item/TodoItem.js">
+<link rel="modulepreload" href="/js/stores/todos.js">
+<link rel="modulepreload" href="/js/lib/store.js">
+<link rel="modulepreload" href="/js/lib/dom.js">
+</head>
+<body>
+<!-- verbatim:header -->
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/">Acme</a>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/todo.html" aria-current="page">Todos</a></li>
+      <li><a href="/profile.html">Profile</a></li>
+    </ul>
+  </nav>
+</header>
+<!-- /verbatim:header -->
+<main id="main">
+  <h1>Todos</h1>
+  <todo-list>
+    <form class="todo-form" action="/todo.html" method="get">
+      <label for="new-todo">New todo</label>
+      <input id="new-todo" name="title" required pattern=".*\S.*" maxlength="200" autocomplete="off">
+      <button type="submit">Add</button>
+    </form>
+    <p class="todo-status" role="status" data-status></p>
+    <ul class="todo-items" data-items></ul>
+    <template data-item>
+      <li>
+        <todo-item>
+          <label><input type="checkbox" name="done"> <span data-title>Todo</span></label>
+          <button type="button" data-remove>Remove <span class="visually-hidden" data-title></span></button>
+        </todo-item>
+      </li>
+    </template>
+  </todo-list>
+</main>
+<!-- verbatim:footer -->
+<footer class="site-footer">
+  <p>Acme example app. No framework, no build step.</p>
+</footer>
+<!-- /verbatim:footer -->
+</body>
+</html>

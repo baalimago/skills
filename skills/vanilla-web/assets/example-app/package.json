@@ -1,0 +1,29 @@
+{
+  "name": "vanilla-web-example",
+  "private": true,
+  "type": "module",
+  "description": "Three static documents enhanced by custom elements. Dev tools only; nothing is built.",
+  "imports": {
+    "#lib/*": "./js/lib/*",
+    "#stores/*": "./js/stores/*",
+    "#components/*": "./js/components/*"
+  },
+  "scripts": {
+    "serve": "python3 -m http.server 4173",
+    "check": "npm run check:html && npm run check:js && npm run test:shell",
+    "check:html": "html-validate *.html && java -jar node_modules/vnu-jar/build/dist/vnu.jar --errors-only *.html",
+    "check:js": "eslint . && prettier --check . && tsc",
+    "test:shell": "node --test test/shell-equality.test.js",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "eslint": "^10.14.0",
+    "html-validate": "^11.18.0",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2",
+    "vnu-jar": "^26.11.3"
+  }
+}

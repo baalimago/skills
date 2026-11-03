@@ -27,6 +27,7 @@ npx skills@latest add baalimago/skills --skill worklog-work
 | [`prompting`](skills/prompting/SKILL.md)               | Author agent prompts to one standard: skeleton, style, template rules.   |
 | [`review`](skills/review/SKILL.md)                     | Be one adversarial reviewer with a named profile and evidence standard. |
 | [`spawn-review`](skills/spawn-review/SKILL.md)         | Fan out N parallel reviewers running `review`, then verify and fix.     |
+| [`vanilla-web`](skills/vanilla-web/SKILL.md)           | Build library-free HTML/CSS/JS apps as static documents with islands.   |
 
 `worklog-system` is the map. The five lifecycle skills are one verb each: `plan → validate → work → review → fix`.
 

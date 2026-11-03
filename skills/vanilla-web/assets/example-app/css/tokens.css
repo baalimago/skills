@@ -1,0 +1,39 @@
+@layer tokens {
+  :root {
+    color-scheme: light dark;
+
+    --color-bg: #f8faf9;
+    --color-surface: #ffffff;
+    --color-text: #14201a;
+    --color-muted: #4d5c54;
+    --color-border: #6b7b72;
+    --color-accent: #1b4332;
+    --color-on-accent: #ffffff;
+    --color-link: #1b4332;
+    --color-focus: #7b2cbf;
+    --color-error: #b00020;
+
+    --space-xs: 0.25rem;
+    --space-s: 0.5rem;
+    --space-m: 1rem;
+    --space-l: 2rem;
+    --radius: 0.375rem;
+    --measure: 60rem;
+    --target: 2.75rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #101412;
+      --color-surface: #1a201d;
+      --color-text: #e6ece8;
+      --color-muted: #a3b1a9;
+      --color-border: #74847b;
+      --color-accent: #74c69d;
+      --color-on-accent: #0b1a12;
+      --color-link: #95d5b2;
+      --color-focus: #e0aaff;
+      --color-error: #ff8a80;
+    }
+  }
+}

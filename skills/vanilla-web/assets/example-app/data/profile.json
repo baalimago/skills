@@ -1,0 +1,8 @@
+{
+  "name": "Ada Example",
+  "bio": "Writes small web apps without frameworks, and tests them in three browsers.",
+  "activity": [
+    { "date": "2026-11-02", "text": "Added a profile page." },
+    { "date": "2026-11-01", "text": "Published a todo app." }
+  ]
+}

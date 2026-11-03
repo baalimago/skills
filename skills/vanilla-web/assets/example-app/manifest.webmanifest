@@ -1,0 +1,9 @@
+{
+  "name": "Acme",
+  "short_name": "Acme",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8faf9",
+  "theme_color": "#1b4332",
+  "icons": [{ "src": "/assets/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

@@ -1,0 +1,51 @@
+@layer components {
+  todo-list {
+    display: grid;
+    gap: var(--space-m);
+
+    & .todo-form {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: var(--space-s);
+    }
+
+    & .todo-form label {
+      flex-basis: 100%;
+    }
+
+    & .todo-form input {
+      flex: 1 1 16rem;
+    }
+
+    & .todo-status:empty {
+      display: none;
+    }
+
+    & .todo-items {
+      display: grid;
+      gap: var(--space-xs);
+      padding: 0;
+      list-style: none;
+    }
+
+    & todo-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-s);
+      min-block-size: var(--target);
+    }
+
+    & todo-item label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-s);
+    }
+
+    & todo-item:has(:checked) label {
+      color: var(--color-muted);
+      text-decoration: line-through;
+    }
+  }
+}

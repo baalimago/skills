@@ -1,0 +1,7 @@
+@layer reset, tokens, base, layout, components, utilities;
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}

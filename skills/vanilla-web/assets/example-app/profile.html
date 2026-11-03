@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- verbatim:head -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-eOm/fA2K50QZbL0r87Njiy+UhOzheGw4JYovssdTHpo=' 'sha256-fK6juVPgKFUO9/1koFE+D+rkVov+AxRlMIOGFNuXDnw='; style-src 'self'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/utilities.css">
+<script type="importmap">
+{
+  "imports": {
+    "#lib/": "/js/lib/",
+    "#stores/": "/js/stores/",
+    "#components/": "/js/components/"
+  }
+}
+</script>
+<script type="module" src="/js/main.js"></script>
+<link rel="modulepreload" href="/js/lib/lazy-define.js">
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<!-- /verbatim:head -->
+<title>Profile · Acme</title>
+<meta name="description" content="Ada Example's profile: name, bio and recent activity.">
+<link rel="canonical" href="https://acme.example/profile.html">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Ada Example · Acme">
+<meta property="og:description" content="Writes small web apps without frameworks.">
+<meta property="og:url" content="https://acme.example/profile.html">
+<meta property="og:image" content="https://acme.example/assets/og/profile.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Acme placeholder: a white square on an indigo field">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "Person", "name": "Ada Example", "description": "Writes small web apps without frameworks.", "url": "https://acme.example/profile.html" }
+</script>
+<meta name="theme-color" content="#2d3a8c">
+<link rel="preload" as="style" href="/js/components/user-card/user-card.css">
+<link rel="preload" as="fetch" href="/data/profile.json" crossorigin>
+<link rel="modulepreload" href="/js/components/user-card/user-card.js">
+<link rel="modulepreload" href="/js/components/user-card/UserCard.js">
+<link rel="modulepreload" href="/js/lib/fetch.js">
+<link rel="modulepreload" href="/js/lib/dom.js">
+</head>
+<body>
+<!-- verbatim:header -->
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/">Acme</a>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/todo.html">Todos</a></li>
+      <li><a href="/profile.html" aria-current="page">Profile</a></li>
+    </ul>
+  </nav>
+</header>
+<!-- /verbatim:header -->
+<main id="main">
+  <h1>Profile</h1>
+  <user-card src="/data/profile.json">
+    <template shadowrootmode="open">
+      <link rel="stylesheet" href="/js/components/user-card/user-card.css">
+      <img part="avatar" src="/assets/avatar.svg" alt="" width="96" height="96">
+      <div class="text">
+        <slot name="name"></slot>
+        <slot name="bio"></slot>
+        <slot name="activity"></slot>
+      </div>
+    </template>
+    <h2 slot="name">Ada Example</h2>
+    <p slot="bio">Writes small web apps without frameworks.</p>
+    <div slot="activity">
+      <h3>Recent activity</h3>
+      <ul data-activity>
+        <li><time datetime="2026-11-01">November 1, 2026</time> Published a todo app.</li>
+      </ul>
+    </div>
+  </user-card>
+</main>
+<!-- verbatim:footer -->
+<footer class="site-footer">
+  <p>Acme example app. No framework, no build step.</p>
+</footer>
+<!-- /verbatim:footer -->
+</body>
+</html>
