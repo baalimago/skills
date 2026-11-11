@@ -84,6 +84,21 @@
       </ul>
     </div>
   </user-card>
+  <section>
+    <h2>Danger zone</h2>
+    <p>Deleting the profile removes it from this browser only.</p>
+    <button type="button" commandfor="confirm-delete" command="show-modal">
+      Delete profile
+    </button>
+    <dialog id="confirm-delete" aria-labelledby="confirm-delete-title">
+      <h2 id="confirm-delete-title">Delete this profile?</h2>
+      <p>This cannot be undone.</p>
+      <form method="dialog">
+        <button type="submit" value="cancel" autofocus>Cancel</button>
+        <button type="submit" value="delete">Delete</button>
+      </form>
+    </dialog>
+  </section>
 </main>
 <!-- verbatim:footer -->
 <footer class="site-footer">

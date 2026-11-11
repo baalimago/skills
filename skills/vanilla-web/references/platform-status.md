@@ -1,6 +1,10 @@
 # Platform status
 
-Snapshot taken 2026-11-03. Re-verify against the [web-features explorer](https://web-platform-dx.github.io/web-features-explorer/) before relying on anything below the widely-available tier.
+Snapshot taken 2026-11-11, cross-checked against the
+[Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance)
+guides and their Baseline annotations. Re-verify against the
+[web-features explorer](https://web-platform-dx.github.io/web-features-explorer/)
+before relying on anything below the widely-available tier.
 
 ## Contents
 
@@ -68,10 +72,13 @@ a month is MDN's first cross-browser date and a full date is the explorer's wide
 | Feature | Since | Note | Source |
 | --- | --- | --- | --- |
 | Anchor positioning, core (`anchor-name`, `position-area`) | January 2026 (MDN) | pins popovers to their invoker; explorer disagrees | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/anchor-name), [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/position-area) |
+| `ariaLabelledByElements` and its twins | 2025-04-04 | node references label across a shadow boundary, outward only | [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/ariaLabelledByElements) |
+| `@starting-style` | 2024-08-06 | entry animation for top-layer elements, no script | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@starting-style) |
 | Container style queries | Baseline 2026 (undated list) | replaces `:host-context()` | [web.dev](https://web.dev/baseline/2026) |
 | `content-visibility` | Baseline 2024 (September 2024) | skips off-screen rendering, keeps the accessibility tree | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/content-visibility) |
 | `<details name>` | 2024-09-03; widely expected 2027-03-03 | exclusive accordions | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/details-name/) |
 | `::details-content` | 2025-09-16 | animates disclosure content | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/details-content/) |
+| `field-sizing` | Newly available (undated) | control sizes itself to its content | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing) |
 | `fetchpriority` | Chrome 102, Firefox 132, Safari 17.2 | a hint; `high` on the LCP image | [web.dev](https://web.dev/articles/fetch-priority) |
 | `getHTML()` | September 2024 | serializes shadow roots for tests | [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/getHTML) |
 | Import attributes (`with { type }`) | April 2025 | `json` type; the `css` type is limited | [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import/with) |
@@ -85,6 +92,7 @@ a month is MDN's first cross-browser date and a full date is the explorer's wide
 | Scroll-driven animations | 2026-10-27; widely expected 2029-04-27 | keep the `@supports` fallback | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/scroll-driven-animations/) |
 | `setHTMLUnsafe()` | Chrome 124, Safari 17.4, Firefox 148 (secondary) | parses declarative shadow roots from strings | [rezhajul.io](https://rezhajul.io/posts/stop-using-innerhtml-firefox-sethtml/) |
 | `:state()`, `CustomStateSet` | May 2024 | styles internal state without classes | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/:state) |
+| `transition-behavior: allow-discrete` | 2024-08-06 | animates `display`; Firefox 129 parses it and does not apply it | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/transition-behavior) |
 | Trusted Types | 2026-02-24; widely expected ~August 2028 | string sinks throw under the CSP directive | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/trusted-types) |
 | View transitions, same-document | 2025-10-14; widely expected 2028-04-14 | `document.startViewTransition()` | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/view-transitions/) |
 
@@ -93,15 +101,22 @@ a month is MDN's first cross-browser date and a full date is the explorer's wide
 | Feature | Since | Note | Source |
 | --- | --- | --- | --- |
 | Anchor positioning, explorer umbrella | Safari 27 only listed | contradicts the MDN core badges | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/anchor-positioning/) |
+| `@function` | Chrome 139 | CSS functions; no Firefox or Safari plan found | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@function) |
+| `blocking="render"`, `<link rel="expect">` | Chrome, Safari | Firefox ignores both; render blocking is a no-op, not a break | [Chrome](https://developer.chrome.com/docs/web-platform/view-transitions) |
 | CSS module scripts (`with { type: "css" }`) | Chrome 123, Firefox 147 | Safari blocks; export sheets from `.css.js` | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/css-modules) |
 | Customizable `<select>` (`appearance: base-select`) | Chrome 135, Safari 27 | Firefox blocks since September 2026 | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/customizable-select/) |
 | Customized built-ins (`is=""`) | blocked since January 2020 | WebKit WONTFIX; use a light-DOM wrapper | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/customized-built-in-elements.json), [WebKit](https://bugs.webkit.org/show_bug.cgi?id=182671) |
 | `<datalist>` | Limited (MDN) | assistive-technology gaps; enhance a text input only | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist) |
 | `dialog closedby` | Chrome 134, Firefox 141 | Safari blocks since July 2025 | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/dialog-closedby/) |
+| `focusgroup` | Chrome 150 | one tab stop for a composite widget; every other engine needs roving tabindex | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/focusgroup) |
+| `<input type="checkbox" switch>` | Safari 17.4 only | other engines, no plan found; keep a checkbox with `role="switch"` | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/switch-control) |
+| Interest invokers (`interestfor`) | Chrome 149 | hover intent without script; no other engine ships it | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/interest-invokers) |
 | JSON module scripts | Chrome 123, Safari 17.2 | Firefox missing; `fetch` the JSON instead | [es-module-shims](https://github.com/guybedford/es-module-shims) |
 | `moveBefore()`, `connectedMoveCallback` | Chrome 133, Firefox 144 | Safari missing; fall back to `insertBefore()` | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/move-before.json) |
 | Multiple import maps | Chrome 135, Safari 18.4 | Firefox missing; keep one inline map | [es-module-shims](https://github.com/guybedford/es-module-shims) |
 | Observable, `EventTarget.when()` (WICG) | Chrome 135 (April 2025) | Mozilla negative; "very unlikely to become Baseline" | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/observable/) |
+| `overlay` | Chrome 117 | keeps an exiting top-layer element in the layer; the only blocker for a CSS exit animation | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/overlay) |
+| `overscroll-behavior` on a non-scrollable container | Chrome 144 | traps the wheel over `dialog::backdrop`; Firefox and Safari still scroll the page | [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/overscroll-behavior) |
 | `popover="hint"` | Chrome 151, Firefox 153 | Safari blocks since July 2026 | [explorer](https://web-platform-dx.github.io/web-features-explorer/features/popover-hint/) |
 | `prefetch` | not Baseline (MDN) | blocking engine not recorded | [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/prefetch) |
 | Reference Target, phase 1 | Chrome 152 (2026-08-25) | Safari and Firefox prototypes only | [Chrome 152](https://developer.chrome.com/release-notes/152) |
@@ -135,6 +150,8 @@ a month is MDN's first cross-browser date and a full date is the explorer's wide
 - `dialog closedby` (since July 2025), `popover="hint"` (since July 2026)
 - Sanitizer `setHTML()` (since March 2026), Temporal (since January 2026)
 - `scheduler.yield()` and `postTask()`; `requestIdleCallback` off by default
+- `overscroll-behavior` on a container that cannot scroll, so a modal's
+  backdrop does not trap the page scroll
 - Customized built-ins (WONTFIX); Navigation API `precommitHandler`
 - Chromium-only: speculation rules prerender (prefetch: see Conflicts), Observable, Reference Target, `:host-context()`
 
@@ -143,13 +160,18 @@ a month is MDN's first cross-browser date and a full date is the explorer's wide
 - Cross-document view transitions (since December 2024)
 - Customizable `<select>` (since September 2026)
 - Multiple import maps and JSON module scripts
+- Render blocking: `blocking="render"` and `<link rel="expect">` are ignored
+- The top-layer exit animation: `overlay`, and discrete `display` transitions
+- `focusgroup`, interest invokers
+- `overscroll-behavior` on a modal backdrop: the wheel still scrolls the page
 - Chromium-only: speculation rules, Observable, Reference Target, `:host-context()`
 
 ## Conflicts found
 
 - Anchor positioning: explorer umbrella says Limited with only Safari 27; MDN marks `anchor-name` and `position-area` newly available since January 2026.
+- Declarative shadow DOM: the Modern Web Guidance guide dates Baseline 2024-02-20, the explorer's widely date is 2026-08-20. Both put it in the widely tier today, so it needs no guard.
 - `setHTML()` in Chrome: web-features and Japanese press say Chrome 146 stable; alfy.blog (May 2026) says Canary behind a flag.
-- `light-dark()`: the widely date 2026-11-13 is "expected", ten days after this snapshot.
+- `light-dark()`: the widely date 2026-11-13 is "expected", two days after this snapshot.
 - Speculation rules: the research says Chromium-only, but Playwright's WebKit 27.2 build logged "Prefetch request denied: URL must be secure (HTTPS)" for the example app's prefetch rule on 2026-11-03. WebKit appears to parse prefetch rules over HTTPS; verify before relying on it.
 - `<template patchfor>` behind a Chrome 148 flag: one secondary source, unverified.
 - Declarative partial updates: MDN's template page names an experimental `<template for>`; the WICG repository uses `patchfor`; likely one proposal renamed.

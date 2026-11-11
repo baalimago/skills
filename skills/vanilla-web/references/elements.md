@@ -60,6 +60,13 @@ disconnectedCallback() { this.#controller.abort(); }
   scoped per root, so `for`, `aria-labelledby`, `aria-controls` and
   `aria-activedescendant` cannot cross; such a widget belongs in light DOM
   ([Nolan Lawson](https://nolanlawson.com/2022/11/28/shadow-dom-and-accessibility-the-trouble-with-aria/)).
+- Label and describe across the boundary with the ARIA element
+  properties, `internals.ariaLabelledByElements = [el]` and its
+  described-by, controls and active-descendant twins: they take node
+  references, so a control inside the root can point outward at light
+  DOM. They cannot point inward, so a host still cannot be named by its
+  own shadow content
+  ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/ariaLabelledByElements)).
 - Treat Reference Target as an enhancement: `shadowrootreferencetarget`
   points references to the host at one inner element
   ([HTMHell](https://htmhell.dev/adventcalendar/2025/4/)); feature-test
@@ -70,17 +77,29 @@ disconnectedCallback() { this.#controller.abort(); }
 - Set host semantics through `ElementInternals` (`role`, `ariaChecked`)
   so author attributes still override them
   ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals)).
+- Set `delegatesFocus: true` only when the root wraps a focusable native
+  control and the host carries no role; combine the two and focus lands
+  on the inner node while the announced state stays on the host. When
+  the host itself is the control, put it in the tab order from
+  `connectedCallback`, since setting `tabIndex` in the constructor
+  throws on `createElement`
+  ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow)).
 
 ## Declarative shadow DOM
 
 - Declare each root in the document with `<template shadowrootmode>` as
   the host's first child; the parser attaches it, so the widget paints
-  before its module loads. Widely available
+  before its module loads. Widely available, so it needs no guard
   ([web.dev](https://web.dev/articles/declarative-shadow-dom)).
 - Hydrate in the constructor: keep `internals.shadowRoot` if present,
   else attach and stamp the same markup. `attachShadow()` on a declared
   root empties it, wiping the server markup, and `innerHTML` never
   declares one (same source).
+- Never re-render a declared root on upgrade, and add listeners against
+  the markup that is already there; a render would discard it and flash.
+- Style the root from inside the declared template with a `<link>`,
+  which `style-src 'self'` allows and an inline `<style>` would not; a
+  sheet that arrives with the module leaves the first paint unstyled.
 
 ```js
 // template: the declared root's markup, <link> to the sheet included
@@ -108,6 +127,9 @@ export class SignaturePad extends HTMLElement {
   self-applied class, since `class` belongs to the author
   ([MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/:state));
   feature-test it ([platform status](platform-status.md)).
+- Choose per channel: a custom state for what the element derives at
+  runtime and only needs styled, an attribute for what markup must set
+  or a reload must restore. A custom state is never serialized.
 
 ## Attributes and properties
 
@@ -156,6 +178,18 @@ this.dispatchEvent(new CustomEvent('todo-item:toggle', {
 - Expose a shadow widget's styling surface as documented `--tag-*`
   custom properties with `var()` fallbacks, `part` names and `:state()`;
   custom properties are the only channel that crosses the root.
+- Keep each public property unset on `:host` and read it once into a
+  private alias, so the fallback is declared in one place and a consumer
+  can still override it from any ancestor. A property defined on `:host`
+  is overridable only on the host itself.
+
+```css
+:host { --_bg: var(--card-bg, white); }
+.card { background: var(--_bg); }
+```
+
+- Set `container-type: inline-size` on a host whose `display` is `block`
+  or `grid`; size containment does nothing on the default `inline` host.
 - Name parts for their role and re-expose nested ones with `exportparts`.
   `::part()` rejects structural pseudo-classes and never chains
   ([MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/::part)).
@@ -165,6 +199,10 @@ this.dispatchEvent(new CustomEvent('todo-item:toggle', {
 - Start shadow sheets with `:host { display: block }` and
   `:host([hidden]) { display: none }`; otherwise the host is inline and
   `hidden` stops working (web.dev, above).
+- Give a wrapped native control `font: inherit` and `color: inherit`
+  inside the root; form controls read their font from the UA sheet,
+  which does not inherit, so a `<my-button>` otherwise renders in the
+  platform font.
 - Never use `:host-context()`; the CSS WG dropped it
   ([csswg](https://lists.w3.org/Archives/Public/public-css-archive/2025Mar/0859.html)).
 - Keep each element's styles in one sheet, `components/<tag>/<tag>.css`.
@@ -179,6 +217,10 @@ this.dispatchEvent(new CustomEvent('todo-item:toggle', {
 - Reserve space with `&:not(:defined)` or `:host(:not(:defined))`
   in the element's sheet; linked before upgrade, it holds the box from
   first paint ([MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/:defined)).
+- Let that guard fail open: never pair `:not(:defined)` with a rule that
+  hides the content for good. Reserve the box, then reveal it on a timer
+  with `animation: reveal 0.2s 2s forwards` and a keyframe to
+  `opacity: 1`, so a module that never arrives cannot leave a blank box.
 - Escape hatch: many shadow instances may share one `CSSStyleSheet`
   from `tag.css.js`, built with `replaceSync` and adopted per root
   ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Document/adoptedStyleSheets)).
@@ -196,6 +238,9 @@ this.dispatchEvent(new CustomEvent('todo-item:toggle', {
 - Guard `define()` with `customElements.get()`, since it throws on a
   taken name, and never import a `tag.js` from a class file; `main.js`
   alone decides eager or lazy.
+- Fix `observedAttributes` and the lifecycle hooks before `define()`;
+  the registry snapshots both once, so an attribute added to the list
+  later never fires a callback.
 - Never use customized built-ins (`is=""`), which WebKit closed WONTFIX
   ([WebKit](https://bugs.webkit.org/show_bug.cgi?id=182671)); wrap the
   native element instead: `<todo-list><ul>…</ul></todo-list>`.

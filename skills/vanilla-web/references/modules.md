@@ -165,6 +165,11 @@
 - Keep nesting to one level and start nested type selectors with `&`;
   nesting is widely available, and deeper chains raise specificity
   ([kiwipedia](https://github.com/alsacreations/kiwipedia/blob/main/guidelines/css.md)).
+- Wrap a default in `:where()` inside its layer, so the next rule wins
+  without a specificity fight, and group a selector list that needs a
+  fallback branch with `:is()`, which forgives the branch a browser
+  cannot parse. Neither takes a pseudo-element
+  ([MDN :where](https://developer.mozilla.org/en-US/docs/Web/CSS/:where)).
 - Adopt `@scope` for structure once it is widely available. Today a
   browser without it drops the whole block and the element paints
   unstyled; see [platform status](platform-status.md) and

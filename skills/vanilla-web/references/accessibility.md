@@ -43,10 +43,11 @@ this" are enhancements; see [platform status](platform-status.md).
 
 | Need | Use | Rule and pitfall |
 | --- | --- | --- |
-| Modal window | `<dialog>` opened with `showModal()` | Sets `aria-modal="true"` and makes the rest of the document inert; a custom dialog must rebuild Esc, focus and inertness by hand ([MDN dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog)) |
+| Modal window | `<dialog>` opened with `command="show-modal"` or `showModal()` | Sets `aria-modal="true"` and makes the rest of the document inert; a custom dialog must rebuild Esc, focus and inertness by hand. Add no `role` and no focus trap ([MDN dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog)) |
 | Disclosure, accordion | `<details>` with `<summary>` | No `role` allowed; the `<summary>` content is the name. A shared `name` makes the group exclusive; feature-test this, though unsupported engines merely open panels independently ([MDN details](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details)) |
-| Menu, listbox, tooltip, non-modal panel | `popover` on the panel, `popovertarget` on a `<button>` | Always non-modal ([MDN Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API)). It adds behaviour but no role: set `role="menu"`, `"listbox"`, `"dialog"`, or `"tooltip"` for plain text only, and place the panel right after the invoker in the DOM so reading order matches tab order ([Hidde de Vries](https://hidde.blog/popover-semantics/)). Feature-test this with `"popover" in HTMLElement.prototype` |
+| Menu, listbox, tooltip, non-modal panel | `popover` on the panel, `commandfor` with `command="toggle-popover"` on a `<button>` | Always non-modal ([MDN Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API)). It adds behaviour but no role: set `role="menu"`, `"listbox"`, `"dialog"`, or `"tooltip"` for plain text only, and place the panel right after the invoker in the DOM so reading order matches tab order ([Hidde de Vries](https://hidde.blog/popover-semantics/)). Feature-test both; see [interaction](interaction.md) |
 | Search form | `<search>` around the `<form>` | Replaces `role="search"`; never wrap results in it ([MDN search](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/search)) |
+| Expandable detail that find-in-page must reach | `<details>`, or `hidden="until-found"` when its control lives elsewhere | Hidden content stays searchable only this way; `display: none` and `hidden` remove it from find-in-page and from the accessibility tree. Reveal `hidden="until-found"` content by listening for `beforematch` ([Chrome](https://developer.chrome.com/blog/hidden-until-found)) |
 | Result of a calculation or action | `<output for="a b">` | Implicit `status` role, but VoiceOver with Safari and NVDA with Firefox drop its name, so put the whole message in its content ([Sara Soueidan](https://www.sarasoueidan.com/blog/accessible-notifications-with-aria-live-regions-part-1/)) |
 | Task progress | `<progress value max>` | Label it with `<label>` or `aria-labelledby`; inner text is a fallback, not a name; no `value` means indeterminate ([MDN progress](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/progress)) |
 | Value in a known range | `<meter>` | Fixed role, no `role` allowed; label it like `<progress>` ([MDN meter](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meter)) |
@@ -55,6 +56,8 @@ this" are enhancements; see [platform status](platform-status.md).
 | Action on this document | `<button type="button">` | Inside a form a button defaults to `submit` ([MDN button](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/button)) |
 | Go to a URL or anchor | `<a href>` | Never `href="#"` and never `role="button"`: Enter follows a link, Space scrolls the document ([Adrian Roselli](https://adrianroselli.com/2016/01/links-buttons-submits-and-divs-oh-hell.html)). Disable by removing `href`, not with `aria-disabled` ([ARIA in HTML](https://www.w3.org/TR/html-aria/)) |
 | Related controls | `<fieldset>` with `<legend>` | The legend names the group for every control inside ([WAI forms](https://www.w3.org/WAI/tutorials/forms/)) |
+| Video with speech | `<video controls>` with `width`, `height`, `poster` and `<track kind="captions">` | Silence is not an exemption; the caption track carries the words. Omit `autoplay` unless the video is muted, and then offer a pause control ([WCAG 1.4.2](https://www.w3.org/WAI/WCAG22/Understanding/audio-control.html)) |
+| Decorative background video | `<video muted>` with no `controls` and `role="none"` | Valid only while the element holds no focusable content; `aria-hidden` on a control "violates core accessibility" ([MDN video](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video)) |
 
 ## Keyboard and focus
 
@@ -85,8 +88,17 @@ this" are enhancements; see [platform status](platform-status.md).
   ancestor and closes on Esc. Put `autofocus` on the likeliest control,
   never `tabindex` on `<dialog>`, and always show a close button
   ([MDN dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog)).
+- Do not pass `focus({ preventScroll: true })` without checking the
+  result; it can leave the focused element off-screen. Put
+  `scroll-padding` on `html` instead, so the browser scrolls it clear of
+  sticky bars.
 - Feature-test `"closedBy" in HTMLDialogElement.prototype` before relying
   on light dismiss; Esc and the close button remain the contract.
+- Stop the page scrolling under a modal with one rule on the root,
+  `html:has(dialog:modal) { overflow: hidden }`, after
+  `scrollbar-gutter: stable`; the gutter keeps the layout still, while
+  `overscroll-behavior` alone leaves the page scrolling outside Chromium.
+  Rules in [interaction](interaction.md).
 
 ## Live regions
 
@@ -146,22 +158,31 @@ this" are enhancements; see [platform status](platform-status.md).
 <label for="email">Email</label>
 <p id="email-hint">We send the receipt here.</p>
 <input id="email" name="email" type="email" autocomplete="email"
-       required aria-describedby="email-hint email-error">
+       required aria-describedby="email-hint" data-error="email-error">
 <p id="email-error" class="field-error"></p>
 ```
 
 - Match `for` to the control `id` exactly; wrap the control in its label
   only when ids are unavailable, and hide a label only by clipping
   ([WAI labels](https://www.w3.org/WAI/tutorials/forms/labels/)).
-- List the hint before the error in `aria-describedby` so the hint reads
-  first; on error set the message with `textContent` and
-  `aria-invalid="true"`, clearing both on fix
+- Keep the error's id out of `aria-describedby` in the markup and add it
+  on error, after the hint, removing it on fix: a referenced description
+  is read even while it is hidden, so markup that names it announces the
+  error before the user has typed
   ([WAI notifications](https://www.w3.org/WAI/tutorials/forms/notifications/)).
-- Keep the error element empty, not `hidden`, while valid; a referenced
-  description is read even when hidden.
 - Style errors with `:user-invalid`, never `:invalid`, which matches empty
   required fields on load
   ([MDN :user-invalid](https://developer.mozilla.org/en-US/docs/Web/CSS/:user-invalid)).
+- Mirror `:user-invalid` into `aria-invalid` from `input`, `change`,
+  `blur` and `invalid`, since no event reports the pseudo-class itself.
+  Set it to `false` rather than leaving it unset: Firefox and Safari
+  expose an empty required field as invalid from load, and Chromium
+  exposes it after interaction only when the attribute is `true`
+  ([Chrome](https://developer.chrome.com/docs/forms/validate-accessible-forms)).
+- Make one visually hidden `role="status"` region per page announce the
+  message that appears when a field loses focus; a live region that is
+  shown rather than changed is announced unreliably, so never mark each
+  error message as a live region (same source).
 - After a failed submit without reload, fill a summary that exists empty
   as `role="alert"`: a heading with the count, one link per error naming
   label, problem and fix; then focus the first invalid field

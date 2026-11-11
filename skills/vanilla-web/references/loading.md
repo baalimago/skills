@@ -126,7 +126,7 @@ export class Store extends EventTarget {
   such as read-only activity feeds
   ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/replaceChildren)).
 - Reorder with `moveBefore`, which keeps focus and dialog state, else
-  `insertBefore`; feature-test this
+  `insertBefore`; test `'moveBefore' in Element.prototype` and fall back
   ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/moveBefore)).
 - Delegate per element root with `closest()`, so new rows need no wiring
   ([gomakethings](https://gomakethings.com/javascript-event-delegation-across-a-code-base/)).
@@ -219,6 +219,9 @@ async function staleWhileRevalidate(event) {
   `prefers-reduced-motion: no-preference` query; engines without it
   navigate normally
   ([Chrome](https://developer.chrome.com/docs/web-platform/view-transitions/cross-document)).
+- Pair it with a render block on the new document's above-fold content,
+  or the cross-fade can start before that content exists; see
+  [interaction](interaction.md) and [document head](document-head.md).
 - Add speculation rules as an enhancement; engine support is uneven
   ([platform status](platform-status.md)). Prefetch `eager`, prerender
   `moderate` ([HTMHell](https://htmhell.dev/adventcalendar/2025/3/)).

@@ -49,6 +49,42 @@
     border-color: var(--color-error);
   }
 
+  dialog {
+    max-inline-size: 30rem;
+    padding: var(--space-m);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: inherit;
+  }
+
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  html:has(dialog:modal) {
+    overflow: hidden;
+  }
+
+  dialog::backdrop {
+    overscroll-behavior: contain;
+    background: rgb(0 0 0 / 0.5);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    dialog {
+      transition: opacity 0.15s ease-out;
+    }
+
+    dialog[open] {
+      opacity: 1;
+
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
   .skip-link {
     position: absolute;
     inset-inline-start: var(--space-s);

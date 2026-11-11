@@ -121,6 +121,14 @@ Each group is optional except identity. Write only what the page needs.
   `crossorigin` so the request matches `fetch()`'s mode.
 - Write speculation rules per document: the hero prefetches the likely
   next document, a tool page prefetches nothing.
+- Hold the first paint until the landmark exists with
+  `<link rel="expect" href="#main" blocking="render">`, so a
+  cross-document view transition starts from a painted page instead of a
+  blank one. Point it at the end of the above-fold content, never at the
+  footer. The Nu checker rejects `blocking` on `rel=expect` today while
+  the standard's render-blocking algorithm requires it; either exempt
+  that one rule in CI or accept a blank cross-fade
+  ([Chrome](https://developer.chrome.com/docs/web-platform/view-transitions)).
 
 Example purpose block for a profile document:
 

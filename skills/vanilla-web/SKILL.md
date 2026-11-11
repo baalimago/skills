@@ -28,6 +28,10 @@ accessible.
   markup before any script runs; elements add behaviour, not content.
 - Prefer the native element. Reach for ARIA only when no element has the
   semantics; a role is a promise to implement its keyboard model.
+- Climb the interaction ladder before writing code: an element, then an
+  attribute such as `popover`, `commandfor` or `field-sizing`, then a CSS
+  state, then one delegated listener, and only then an island; see
+  [interaction](references/interaction.md).
 - Depend only on widely available APIs. Treat newly available ones as
   enhancements behind a feature check; see
   [platform status](references/platform-status.md).
@@ -84,12 +88,15 @@ class file. A complete example is in [assets/example-app](assets/example-app).
 
 ## Add an element
 
-1. Confirm the markup needs behaviour. Markup without behaviour stays
-   plain HTML and CSS; an element that only renders is cost without gain.
+1. Confirm the markup needs behaviour, and that no rung of the ladder in
+   [interaction](references/interaction.md) already provides it. Markup
+   without behaviour stays plain HTML and CSS; an element that only
+   renders is cost without gain.
 2. Decide the root. Wrap existing markup in light DOM by default. Use
    shadow DOM only for a self-contained widget with private structure and
-   no ARIA relation to outside elements; declare it in the document with
-   `<template shadowrootmode>`. Rules in [elements](references/elements.md).
+   no id-based ARIA relation crossing its boundary; declare it in the
+   document with `<template shadowrootmode>`. Rules in
+   [elements](references/elements.md).
 3. Create `components/<tag>/` with the class file, the registration file
    and the sheet. Register the tag in `main.js`: eagerly when every
    document needs it, through `lazyDefine` for islands.
@@ -132,8 +139,9 @@ class file. A complete example is in [assets/example-app](assets/example-app).
   `action` and `method`; the island adopts an early native submission
   when it upgrades.
 - Never lazy-load the LCP candidate. Use `:not(:defined)` only to
-  reserve space for what upgrade changes. Prefer a "Load more" button to
-  infinite scroll.
+  reserve space for what upgrade changes, and let the guard fail open so
+  a module that never arrives cannot hide the content for good. Prefer a
+  "Load more" button to infinite scroll.
 - Untrusted strings go through `textContent` or `setHTML` with a text
   fallback, never `innerHTML`.
 - Style through `@layer` for file priority and one level of nesting
@@ -170,6 +178,9 @@ Run every gate before finishing:
   purpose block fields, equality test.
 - [elements](references/elements.md): lifecycle contract, light versus
   shadow DOM, reflection, events, form association, styling.
+- [interaction](references/interaction.md): the ladder from markup to
+  island, dialogs, popovers, disclosure, scriptless forms, top-layer
+  animation, page transitions.
 - [modules](references/modules.md): import maps, preloading, file split,
   CSS layers and nesting, typing, when a build step is justified.
 - [loading](references/loading.md): islands, lazy define, fetch, service
