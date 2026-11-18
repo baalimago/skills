@@ -77,7 +77,7 @@ What counts as an interface is defined here and nowhere else:
 | HTTP API                                       | a route table: method, path, request fields, status per outcome                            | HTTP requests                                    |
 | Tool or RPC schema                             | the schema                                                                                  | calls through the schema                         |
 | CLI                                            | a usage synopsis: commands, flags, defaults, exit codes, output streams                    | running the command                              |
-| Data contract (provisional)                    | DDL for tables that other code reads                                                        | queries                                          |
+| Data contract (provisional)                    | DDL for tables, or a path layout and record schemas for files, that other code reads        | queries, or writing and reading the files        |
 | Infra module (provisional)                     | variables and outputs, a values schema, environment variables                               | plan or template output                          |
 | Build target, pipeline, or image (provisional) | inputs (arguments, environment), outputs, and the result per outcome                        | running the target or container, or the workflow |
 | UI (provisional)                               | the route table plus `Element or state \| Shown when`                                       | HTTP requests and DOM assertions                 |
@@ -86,8 +86,9 @@ Provisional kinds are on trial. The maintainer adds, removes, or confirms a
 kind by editing this table.
 
 - **Data contracts.** The frozen surface is the columns and constraints a
-  consumer names; other columns are body. A migration whose downgrade discards
-  data needs a `Human required` section.
+  consumer names, or for files the paths and record fields a consumer names;
+  other columns and fields are body. A migration whose downgrade discards data
+  needs a `Human required` section.
 - **Generated interfaces.** When a generator produces the interface, the
   interface is the generator's source file, and the output is body. The
   Validation policy lists each generator and the gate that proves it is
