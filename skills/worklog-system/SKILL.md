@@ -9,38 +9,30 @@ metadata:
 # Worklog system
 
 The worklog system turns a multi-phase change into a durable, reviewable queue
-that people and coding agents share across sessions. A worklog is a package of
-phases, and each phase implements one interface. The maintainer signs off
-**what** the system will do; agents own **how** it is done and the proof that
-it works.
+shared across sessions and coding agents. A worklog is a package of phases, and
+each phase implements one interface. The maintainer signs off **what** the
+system will do; agents own **how** it is built and verified.
 
-Use the system when an effort spans phases, sessions, or contributors. Keep
-one-off notes and investigations outside the worklog.
+## Lifecycle
 
-## One lifecycle, one skill per verb
+Load the single skill for the current step:
 
-| Step     | Skill                | Use when                                                                    |
-| -------- | -------------------- | --------------------------------------------------------------------------- |
-| plan     | [[worklog-plan]]     | No worklog exists, a finding needs a tree or signature change, or a design andon must be reset. |
-| validate | [[worklog-validate]] | A planned worklog must be checked before its interfaces are signed off.     |
-| work     | [[worklog-work]]     | The line is `running`, nothing is open for fix, and a phase can be selected. |
-| review   | [[worklog-review]]   | A phase is `Complete`, or every phase is and the root needs its final sweep. |
-| fix      | [[worklog-fix]]      | A phase is `Reopened`, or a finding owned by `fix` is open.                 |
+| Step        | Skill                   | Use when                                                                                   |
+| ----------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| plan        | [[worklog-plan]]        | Designing a worklog, writing phases, changing the tree or a signature, or resetting a design andon. |
+| validate    | [[worklog-validate]]    | Checking a planned worklog before the maintainer signs off its interfaces.                 |
+| work        | [[worklog-work]]        | The line is `running`, all `fix`-owned findings are closed, and an eligible phase exists.  |
+| review      | [[worklog-review]]      | Auditing a `Complete` phase, or running the final root review once all phases complete.    |
+| fix         | [[worklog-fix]]         | Repairing a `Reopened` phase or closing an open/regressed finding owned by `fix`.          |
+| orchestrate | [[worklog-orchestrate]] | Driving the whole lifecycle end-to-end by spawning one subagent worker per step.           |
 
-This skill is the map. Load the skill for the current step before you act. Do
-not plan, work, review, and fix in one pass.
+`[[skill-name]]` names a sibling skill in this collection.
 
-A `[[skill-name]]` annotation, as used above, names a sibling skill in this
-collection. It is a reading pointer, not a link; no tool resolves it. Load
-that skill when its step applies.
+## Source of truth
 
-## Where things are defined
-
-[[worklog-plan]] is the single definition of the model, the file templates,
-interface kinds and clauses, the phase tables (acceptance criteria, test
-cases, and error management), phase classes, the records (statuses, the `Line`
-marker, findings, the journal, sign-offs), andon cords, and design-andon
-resets. The other skills reference it; this skill repeats none of it.
-
-Prefer the repository's existing worklog convention. Do not rewrite older
-worklogs to match a newer format.
+[[worklog-plan]] defines the worklog model, file templates, interface kinds,
+clauses, phase tables (`Acceptance criteria`, `Test cases`, `Error management`),
+phase classes (`contract`, `composition`, `prune`), records (status board,
+`**Line:**` marker, findings, session journal, sign-offs), andon cords, and
+design-andon resets. Follow the repository's existing worklog convention for
+older worklogs.

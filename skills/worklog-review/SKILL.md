@@ -3,134 +3,95 @@ name: worklog-review
 description: Review a worklog phase's implementation against its signed-off interface and critique it in place; reviewing the root is the final sweep that closes the worklog. Use when reviewing a completed phase, auditing an implementation against its interface, or filing review feedback into a worklog. Complements worklog-plan (design), worklog-validate (checking), worklog-work (execution), and worklog-fix (fixing).
 license: MIT
 metadata:
-  version: "2.1"
+  version: "2.2"
 ---
 
 # Worklog review
 
-Review the code an executing agent produced against the interfaces the
-worklog promised, and record the critique **in the worklog itself**, so the
-next contributor routes off it. [[worklog-plan]] owns the layout, the phase
-classes, and the records; [[worklog-work]] owns execution; [[worklog-fix]]
-closes what you find. Review only `Complete` phases, or the root.
+Audit a `Complete` worklog phase (or `root` when all phases are `Complete`)
+against its signed-off interface and record findings in place. [[worklog-plan]]
+defines the phase classes and records.
 
-The review is worthless if it only reads the implementation notes. Notes
-report what the author believes they did. A review establishes what the code
-actually does. The two differ exactly where defects live.
+## 1. Verify independently
 
-## Stance: verify independently
+1. **Determine the round:** Set `round` to 1 plus the highest `R` round in the
+   README Findings table or session journal. On round 2+, first verify whether
+   each prior finding on this node is resolved, still open, or regressed (mark
+   `Regressed` in the Findings table if regressed), and file new findings only
+   for regressions or code changed since the previous round.
+2. **Run all gates twice:** Run every gate in the Validation policy twice (in
+   random order with a fresh seed where supported). If any test differs between
+   runs or fails outside a known finding, file a `quality andon` finding `A{nn}`
+   and add `A{nn}` to `**Line:**`, then complete the review.
+3. **Inspect the code and trace invariants:** Open every file the phase touched.
+   For each invariant a clause cites:
+   - Locate every function where the invariant must hold.
+   - Trace every conditional branch, early return, error path, timeout, retry,
+     and loop iteration — starting with failure paths where resources, tokens,
+     locks, or state most often leak.
+   - Follow captured values all the way to their sink (event, response, or
+     storage).
 
-- **Re-run every gate yourself**, exactly as the Validation policy names
-  them. A claimed "all pass" is a hypothesis until you reproduce it. Cite the
-  commands and their outcomes in the verdict.
-- **Hunt flaky tests.** Run the full suite twice, in random order with a
-  fresh seed where the runner allows, otherwise twice in its default order. A
-  test whose result differs between the runs is a quality andon: pull the cord
-  as [[worklog-work]] describes, then finish the review.
-- **Read the code, not the summary.** Open every file the phase touched and
-  trace the real call paths.
-- **Record verified-good, not just faults.** "I confirmed X holds on every
-  path" is information the next reviewer should not have to re-derive.
+## 2. Check by target
 
-## Check by class
+In every class, confirm documentation describing changed behaviour was updated
+in the same phase, and check every row of `Acceptance criteria`, `Test cases`,
+and `Error management` against its live test or repeatable command.
 
-- **Contract.** The written interface matches the phase's Interface block,
-  token for token after formatting. Every clause has a test that names its id
-  and goes through the interface. Every fake used anywhere passes the same
-  contract suite, except a stub child that exercises a composition failure
-  clause, which breaks the child's contract only in the way that clause
-  names. The implementation exposes no public member the interface lacks.
-- **Composition.** The scenarios run with the real children wired in. Every
-  golden change satisfies its golden-diff row, and no other golden changed.
-- **Prune.** No golden changed. No removed name remains outside its allowed
-  hits. Every listed consumer is re-pointed.
-- **Evidence.** Every Acceptance criteria row has a passing test or repeatable
-  command. Every Test cases row exists at its stated level and proves its
-  clause or criterion. Every Error management row produces its named outcome.
+- **Contract phase:**
+  - The written interface matches the phase's `Interface` block token-for-token
+    after formatting, and the implementation exposes only declared public
+    members.
+  - Every clause has a test naming its ID through the interface.
+  - Every fake passes the same contract suite (except a stub child used strictly
+    for a composition failure clause).
+- **Composition phase:**
+  - Scenarios run with the real children wired in.
+  - Every golden change satisfies its `Golden diff` row and all other goldens
+    are untouched.
+- **Prune phase:**
+  - All goldens are untouched, every listed consumer is re-pointed, and searches
+    for removed names return only allowed hits.
+- **Root review (once all phases are `Complete`):**
+  - Sweep the entire tree: run all gates across all levels, verify end-to-end
+    scenarios for every README flow, check all updated documentation, and verify
+    that every `Human checks` command has a journal record. If a human check
+    record is missing, file a finding owned by `maintainer` and set
+    `**Line:** waiting on human: root`.
+  - Compare the product against the README Goal, Flows, Scope, and user request.
 
-In every class, the documents that describe the changed behaviour were
-edited in the same phase.
+## 3. Classify findings
 
-## Technique: trace the invariant through every branch
+Assign each finding a stable ID `R{round}-{nn}` (e.g. `R1-01`), `file:line`, the
+unmet clause, a concrete failure scenario (input/state and wrong outcome), and
+an actionable checkbox item:
 
-Most missed defects are not wrong lines. They are correct lines on a path
-nobody enumerated. For each invariant a clause cites ("X is captured on every
-path", "Y is always released", "Z is idempotent"):
+| Severity  | Meaning                                                                                 | Recorded in                            |
+| --------- | --------------------------------------------------------------------------------------- | -------------------------------------- |
+| `blocker` | Enacts, loses, or leaks something forbidden. Reopens the phase.                         | Phase file + README Findings & board   |
+| `major`   | Leaves a clause unmet with a reachable wrong result. Reopens the phase.                 | Phase file + README Findings & board   |
+| `minor`   | Behaviour is right, but evidence or documentation disagrees.                            | Phase file + README Findings           |
+| `note`    | Verified-good invariant or caveat for future contributors.                              | Phase file only                        |
 
-1. Name the functions where X must hold.
-2. Enumerate **every** conditional branch, early return, error path, retry,
-   and loop iteration in them.
-3. Confirm X holds on each, especially the failure, empty-result, timeout,
-   and retry branches. Guarantees are dropped there far more often than on
-   the happy path, and those branches are usually the least tested.
-4. Follow the value to its destination. Capturing a value is not recording
-   it: a field set at the source but discarded by the event, response, or
-   writer that carries it is still a leak. Chase it to the sink.
+- If an interface itself is missing a clause or cannot carry what a consumer
+  needs, file a `design andon` (`A{nn}`, owner `maintainer`) instead of an `R`
+  finding.
+- If a clause admits two readings, hold the code to the stricter reading and
+  file an `R` finding.
 
-When a resource is costly or safety-critical (spend, tokens, locks, money,
-PII), assume the failure branches are where it leaks and start there.
+## 4. Record in place
 
-## The root review
+Record all results directly in the worklog:
 
-When every phase is `Complete`, review the root. Reviewing a node covers its
-whole subtree, so the root review is the final sweep of the effort: every
-gate at every test level, the end-to-end scenarios of every README flow,
-every document the effort changed, and the journal record of every Human
-check. A Human check with no record is a finding owned by `maintainer`; set
-`**Line:** waiting on human: root`.
-
-A root review sets `**Line:** done` and adds its done journal line only when
-the line is `running` and the Findings table holds no open or regressed
-finding of any severity. Otherwise the open findings are fixed and the root
-is reviewed again.
-
-## Findings
-
-- A stable ID per finding, `R{round}-{nn}`, e.g. `R1-07`.
-- A severity:
-  - `blocker`: enacts, loses, or leaks something it must not.
-  - `major`: a clause is unmet, with a reachable wrong result.
-  - `minor`: the behaviour is right, but the evidence or documentation
-    disagrees.
-  - `note`: verified good, with a caveat the next contributor must not
-    re-derive. Notes stay in the phase file and get no Findings row.
-- A precise reference: `file:line`, and the clause left unmet.
-- Actionable work with a checkbox, so the fixer can close it directly.
-- A concrete failure scenario: the input or state, and the wrong result or
-  cost it produces. "Undercounts on retry" beats "retry looks fragile".
-
-A finding whose root cause is the interface itself is not an `R` finding.
-When a clause is missing, or a member cannot carry what a consumer needs,
-file a design andon as [[worklog-work]] describes. When a clause admits two
-readings, hold the code to the stricter one and file an `R` finding.
-
-## Record it in place
-
-Never write a standalone review document; it becomes a second source of
-truth the next agent will not read. Everything lands in the worklog, in the
-same change:
-
-1. **Affected phase file:** under `## Review findings`, replace `None.` in the
-   first round, or add `### Review N, date` in later rounds, with the
-   findings for that phase and what you verified good.
-2. **README status board:** set `Reopened (review N)` on every phase with a
-   `blocker` or `major` finding. A stale completion status is how defects
-   survive.
-3. **README Findings table:** one row per blocker, major, or minor finding,
-   owned by `fix`, or by `plan` for a rule that spans phases.
-4. **README journal:** one line with the commands you re-ran and the verdict.
-
-## Verdict
-
-State plainly whether the work is ready; green gates are not a verdict. If it
-is not ready, the findings carry the reasons.
-
-## Rounds
-
-The round is one more than the highest `R` round in the Findings table or the
-journal; an `R` finding filed outside a review, such as a patch reset, opens
-round 1 when none exists. A later round first records whether each earlier
-finding is resolved, still open, or regressed, and sets `Regressed` on those
-that regressed. A re-review of a node files only regressions and findings in
-code changed since the previous round. The first root review always sweeps
-the whole tree.
+1. **Phase file (`## Review findings`):** Replace `None.` in round 1, or append
+   `### Review N, <date>` in later rounds, listing all findings and verified-good
+   notes for that phase.
+2. **README (`flock -w 30 <worklog>/README.md.lock -c '<edit command>'`):** In a
+   single locked read-modify-write:
+   - **Status board:** Set `Reopened (review N)` on every phase with a `blocker`
+     or `major` finding.
+   - **Findings table:** Add one row per `blocker`, `major`, or `minor` finding
+     (owner `fix`, or `plan` for cross-phase rules).
+   - **Line marker (root review only):** Set `**Line:** done` only when the line
+     is `running` and the Findings table has zero `Open` or `Regressed` rows.
+   - **Session journal:** Append `date · review · <node> round N <Ready|Not ready> · <commands>: <results>` (or `date · review · done · <commands>: <results>` on a clean root review).

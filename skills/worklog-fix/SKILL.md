@@ -3,77 +3,73 @@ name: worklog-fix
 description: Fix open findings in a worklog, whether validation findings in its documents, review findings in its code, or quality andons that stopped its line. Use when asked to fix, close, or resolve worklog findings, to restart a stopped line, or to fix a flaky test a worklog surfaced. Changes to interfaces or the tree are worklog-plan.
 license: MIT
 metadata:
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Worklog fix
 
-Close findings owned by `fix`. [[worklog-validate]] files `V` findings
-against the documents, [[worklog-review]] files `R` findings against the
-code, and [[worklog-work]] or [[worklog-review]] files `A` findings when the
-line stops. [[worklog-plan]] defines these records. Unlike an executor, a
-fixer reads across phases, because a defect rarely stays inside one.
+Close open or regressed findings owned by `fix` (`V` validation findings, `R`
+review findings, and `A` quality andons). [[worklog-plan]] defines the records.
 
-## Scope
+## Scope and escalations
 
-A fix changes bodies, never the design or the bar:
+Fix implementation bodies, tests, and worklog documents while keeping the
+signed-off design and verification bar intact:
 
-- Never change the tree: nodes, parents, classes, or numbers.
-- Never change a signature: member names, parameters, or types.
-- After the interface sign-off, never change an interface or a clause, except
-  to make the written interface match the latest signed text verbatim.
-- Never delete or weaken an invariant, a parameter, a Scope item, or a gate
-  in the Validation policy.
-- Never weaken a test's assertions. A flaky test keeps its assertions; its
-  cause is fixed.
-- Never drop or weaken an acceptance criterion, a `Test cases` row, or an
-  `Error management` row. Adding a row that proves what the interface already
-  declares is a fix; weakening one is owned by `plan`.
+- Keep the worklog tree (nodes, parents, classes, phase numbers), interface
+  signatures, signed-off clauses, invariants, parameters, Scope items, gates,
+  test assertions, and phase table rows at their full strength.
+- You may add `Acceptance criteria`, `Test cases`, or `Error management` rows
+  that prove what the interface already declares, or update a written interface
+  to match its latest signed text verbatim.
+- If closing a finding requires changing a tree node, signature, or signed-off
+  interface/clause, or weakening a criterion/row:
+  - Before the interface sign-off: reassign the finding's owner to `plan` and
+    stop.
+  - After the interface sign-off: file a `design andon` (`A{nn}`, owner
+    `maintainer`), add `A{nn}` to `**Line:**`, and stop.
 
-A finding that needs any of these is owned by `plan`. After the interface
-sign-off it is a design andon: file it as [[worklog-work]] describes and
-stop.
+## Procedure
 
-## Selecting
-
-1. If the line is stopped only by andons owned by `maintainer`, do nothing.
-2. If the line is stopped by a quality andon owned by `fix`, fix that first.
-3. Otherwise take the open and regressed findings owned by `fix`: those of
-   `Reopened` phases first, then blockers, majors, and minors, one node at a
-   time.
-
-## Reading
-
-Read the README, the phase file of the finding's node, every phase file
-whose `Consumes` names a member you will touch, and the code. Fix the class,
-not the cited line: search for every other occurrence of the same defect and
-fix those as well.
-
-## Baseline
-
-Before changing anything, run every gate. Everything must pass except the
-tests the findings you are fixing name. Any other failure is a new quality
-andon: file it, then fix it first, or stop if its owner is `maintainer`.
-
-## Fixing by kind
-
-- **`V` findings:** edit the documents. When every blocker and major `V`
-  finding owned by `fix` is closed, hand the worklog back to
-  [[worklog-validate]] for the next round.
-- **`R` findings:** fix the code, and add or correct the tests through the
-  interface that should have caught the defect. A `Reopened` phase returns to
-  `Complete` only when every finding that reopened it is closed.
-- **Quality andons:** find the cause and remove it, as [[worklog-plan]]'s
-  Andon cords describes for its cause; when the recorded cause is wrong,
-  correct it in the summary before closing. A flaky test is a defect: find
-  why it is nondeterministic and fix that. Prove the fix by running the test
-  repeatedly, in random order where the runner allows, and record the runs.
-
-## Closing
-
-Run every gate. All must pass. Then close each finding as [[worklog-plan]]'s
-Records describes, and add `fix-start` and `fix-end` rows to the node's
-Implementation notes in the shape [[worklog-work]] defines. When the notes
-still say `Not started.`, start the table; when the node is `root`, put the
-two runs in the journal line instead:
-`date · fix · V2-03, R1-01 closed · <commands>: <results>`.
+1. **Select target findings:** If your brief names specific findings and a node,
+   work on those. Otherwise check `<worklog>/README.md`:
+   - If `**Line:**` is stopped only by `maintainer`-owned andons, report why and
+     stop.
+   - Take `fix`-owned quality andons first, then `Open` or `Regressed` findings
+     on `Reopened` phases, then remaining `fix`-owned findings (`blocker` →
+     `major` → `minor`), one node at a time.
+2. **Read across phases:** Read `<worklog>/README.md`, the target node's phase
+   file, every phase file whose `Consumes` names a member you will touch, and
+   the source code. Search for every other occurrence of the same defect class
+   across the codebase and fix all of them together.
+3. **Run baseline gates:** Run every gate in the Validation policy before making
+   changes. Every gate must pass except tests specifically named by the findings
+   you are fixing. If any other test fails, file a new `quality andon` (`A{nn}`)
+   and either fix it first (if owned by `fix`) or stop (if owned by
+   `maintainer`).
+4. **Apply fixes by kind:**
+   - **`V` findings:** Edit the worklog markdown documents to satisfy the failed
+     validation check.
+   - **`R` findings:** Fix the implementation and add or update tests through
+     the interface that reproduce and prevent the defect.
+   - **Quality andons (`A`):** Identify and remove the root cause (correcting
+     the cause in the finding summary if misclassified). For flaky tests, fix
+     the source of nondeterminism while preserving all assertions, and prove the
+     fix by running the test repeatedly (in random order where supported). When
+     fixing a `foreign` cause (code outside the worklog), commit it separately
+     if commits are enabled, or list the modified files in the closing journal
+     line.
+5. **Verify and close:**
+   - Run every gate in the Validation policy; all must pass.
+   - Record `fix-start` and `fix-end` rows in the node's `## Implementation
+     notes` table (creating the table if it still says `Not started.`; for
+     `root`, record the runs in the journal line instead).
+   - Under the README lock (`flock -w 30 <worklog>/README.md.lock -c '<edit>'`):
+     1. Set each resolved finding's status to `Closed <commit>` (with `+wip` if
+        uncommitted).
+     2. Remove closed andon IDs from `**Line:**` (setting `**Line:** running`
+        when none remain).
+     3. Set a `Reopened` phase back to `Complete` once all findings that
+        reopened it are closed.
+     4. Append `date · fix · <ids> closed · <commands>: <results>` to the
+        session journal.
